@@ -596,29 +596,34 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
 
   const renderContentTab = () => (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Contenido Principal</h3>
+      {/* Hero Section */}
+      <div className="border rounded-lg p-4">
+        <h3 className="text-lg font-semibold mb-4 flex items-center">
+          <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+          Sección Principal (Hero)
+        </h3>
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Título Principal</label>
-            <input
-              type="text"
-              value={template.hero?.title || ''}
-              onChange={(e) => updateTemplate('hero.title', e.target.value)}
-              className="w-full px-3 py-2 border rounded-md"
-              placeholder="Tu título impactante aquí"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Subtítulo</label>
-            <input
-              type="text"
-              value={template.hero?.subtitle || ''}
-              onChange={(e) => updateTemplate('hero.subtitle', e.target.value)}
-              className="w-full px-3 py-2 border rounded-md"
-              placeholder="Subtítulo explicativo"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Título Principal</label>
+              <input
+                type="text"
+                value={template.hero?.title || ''}
+                onChange={(e) => updateTemplate('hero.title', e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="Tu título impactante aquí"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Subtítulo</label>
+              <input
+                type="text"
+                value={template.hero?.subtitle || ''}
+                onChange={(e) => updateTemplate('hero.subtitle', e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="Subtítulo explicativo"
+              />
+            </div>
           </div>
 
           <div>
@@ -642,33 +647,382 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
               placeholder="Comenzar Ahora"
             />
           </div>
+
+          <div className="mt-4 pt-4 border-t">
+            <h4 className="text-sm font-semibold mb-3">Imagen de Fondo</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-2">URL de la Imagen</label>
+                <input
+                  type="url"
+                  value={template.hero?.background?.url || ''}
+                  onChange={(e) => updateTemplate('hero.background.url', e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md"
+                  placeholder="https://images.unsplash.com/photo-..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Overlay (Transparencia)</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={parseFloat(template.hero?.background?.overlay?.replace('rgba(0,0,0,', '').replace(')', '') || '0.4')}
+                  onChange={(e) => updateTemplate('hero.background.overlay', `rgba(0,0,0,${e.target.value})`)}
+                  className="w-full"
+                />
+                <div className="text-xs text-gray-500 mt-1">
+                  Oscuridad: {Math.round(parseFloat(template.hero?.background?.overlay?.replace('rgba(0,0,0,', '').replace(')', '') || '0.4') * 100)}%
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Imagen de Fondo</h3>
+      {/* Features Section */}
+      <div className="border rounded-lg p-4">
+        <h3 className="text-lg font-semibold mb-4 flex items-center">
+          <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+          Características/Features
+        </h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Título de la Sección</label>
+              <input
+                type="text"
+                value={template.features?.title || ''}
+                onChange={(e) => updateTemplate('features.title', e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="Características Destacadas"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Subtítulo</label>
+              <input
+                type="text"
+                value={template.features?.subtitle || ''}
+                onChange={(e) => updateTemplate('features.subtitle', e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="Todo lo que necesitas para hacer crecer tu negocio"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Características Individuales</label>
+            {template.features?.items?.map((feature: any, index: number) => (
+              <div key={index} className="border rounded-lg p-3 mb-3 bg-gray-50">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Título</label>
+                    <input
+                      type="text"
+                      value={feature.title || ''}
+                      onChange={(e) => updateTemplate(`features.items.${index}.title`, e.target.value)}
+                      className="w-full px-2 py-1 border rounded text-sm"
+                      placeholder="Título de la característica"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Icono</label>
+                    <select
+                      value={feature.icon || 'zap'}
+                      onChange={(e) => updateTemplate(`features.items.${index}.icon`, e.target.value)}
+                      className="w-full px-2 py-1 border rounded text-sm"
+                    >
+                      <option value="zap">⚡ Zap</option>
+                      <option value="shield">🛡️ Shield</option>
+                      <option value="trending-up">📈 Trending Up</option>
+                      <option value="heart">❤️ Heart</option>
+                      <option value="award">🏆 Award</option>
+                      <option value="check-circle">✅ Check</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <label className="block text-xs font-medium mb-1">Descripción</label>
+                  <textarea
+                    value={feature.description || ''}
+                    onChange={(e) => updateTemplate(`features.items.${index}.description`, e.target.value)}
+                    className="w-full px-2 py-1 border rounded text-sm"
+                    rows={2}
+                    placeholder="Descripción de la característica"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className="border rounded-lg p-4">
+        <h3 className="text-lg font-semibold mb-4 flex items-center">
+          <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+          Estadísticas/Números
+        </h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">URL de la Imagen</label>
+            <label className="block text-sm font-medium mb-2">Título de la Sección</label>
             <input
-              type="url"
-              value={template.hero?.background?.url || ''}
-              onChange={(e) => updateTemplate('hero.background.url', e.target.value)}
+              type="text"
+              value={template.stats?.title || ''}
+              onChange={(e) => updateTemplate('stats.title', e.target.value)}
               className="w-full px-3 py-2 border rounded-md"
-              placeholder="https://images.unsplash.com/photo-..."
+              placeholder="Números que Hablan"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Overlay (Transparencia)</label>
+            <label className="block text-sm font-medium mb-2">Estadísticas</label>
+            {template.stats?.items?.map((stat: any, index: number) => (
+              <div key={index} className="border rounded-lg p-3 mb-3 bg-gray-50">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Número</label>
+                    <input
+                      type="number"
+                      value={stat.number || stat.value || ''}
+                      onChange={(e) => updateTemplate(`stats.items.${index}.number`, parseInt(e.target.value))}
+                      className="w-full px-2 py-1 border rounded text-sm"
+                      placeholder="100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Sufijo</label>
+                    <input
+                      type="text"
+                      value={stat.suffix || ''}
+                      onChange={(e) => updateTemplate(`stats.items.${index}.suffix`, e.target.value)}
+                      className="w-full px-2 py-1 border rounded text-sm"
+                      placeholder="+, %, K, etc."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Etiqueta</label>
+                    <input
+                      type="text"
+                      value={stat.label || ''}
+                      onChange={(e) => updateTemplate(`stats.items.${index}.label`, e.target.value)}
+                      className="w-full px-2 py-1 border rounded text-sm"
+                      placeholder="Clientes Felices"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Testimonials Section */}
+      <div className="border rounded-lg p-4">
+        <h3 className="text-lg font-semibold mb-4 flex items-center">
+          <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
+          Testimonios
+        </h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Título de la Sección</label>
             <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={parseFloat(template.hero?.background?.overlay?.replace('rgba(0,0,0,', '').replace(')', '') || '0.4')}
-              onChange={(e) => updateTemplate('hero.background.overlay', `rgba(0,0,0,${e.target.value})`)}
-              className="w-full"
+              type="text"
+              value={template.testimonials?.title || ''}
+              onChange={(e) => updateTemplate('testimonials.title', e.target.value)}
+              className="w-full px-3 py-2 border rounded-md"
+              placeholder="Lo que Dicen Nuestros Clientes"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Testimonios</label>
+            {template.testimonials?.items?.map((testimonial: any, index: number) => (
+              <div key={index} className="border rounded-lg p-3 mb-3 bg-gray-50">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Nombre</label>
+                    <input
+                      type="text"
+                      value={testimonial.name || ''}
+                      onChange={(e) => updateTemplate(`testimonials.items.${index}.name`, e.target.value)}
+                      className="w-full px-2 py-1 border rounded text-sm"
+                      placeholder="María González"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Cargo/Posición</label>
+                    <input
+                      type="text"
+                      value={testimonial.position || testimonial.role || ''}
+                      onChange={(e) => updateTemplate(`testimonials.items.${index}.position`, e.target.value)}
+                      className="w-full px-2 py-1 border rounded text-sm"
+                      placeholder="CEO, Empresa"
+                    />
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <label className="block text-xs font-medium mb-1">Testimonio</label>
+                  <textarea
+                    value={testimonial.content || testimonial.comment || ''}
+                    onChange={(e) => updateTemplate(`testimonials.items.${index}.content`, e.target.value)}
+                    className="w-full px-2 py-1 border rounded text-sm"
+                    rows={3}
+                    placeholder="Excelente servicio, muy recomendable..."
+                  />
+                </div>
+                <div className="mt-2">
+                  <label className="block text-xs font-medium mb-1">Calificación (1-5)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="5"
+                    value={testimonial.rating || 5}
+                    onChange={(e) => updateTemplate(`testimonials.items.${index}.rating`, parseInt(e.target.value))}
+                    className="w-full px-2 py-1 border rounded text-sm"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Pricing Section */}
+      {template.pricing && (
+        <div className="border rounded-lg p-4">
+          <h3 className="text-lg font-semibold mb-4 flex items-center">
+            <div className="w-2 h-2 bg-indigo-500 rounded-full mr-3"></div>
+            Precios/Planes
+          </h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Título de la Sección</label>
+                <input
+                  type="text"
+                  value={template.pricing?.title || ''}
+                  onChange={(e) => updateTemplate('pricing.title', e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md"
+                  placeholder="Planes Flexibles"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Subtítulo</label>
+                <input
+                  type="text"
+                  value={template.pricing?.subtitle || ''}
+                  onChange={(e) => updateTemplate('pricing.subtitle', e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md"
+                  placeholder="Elige el plan perfecto para ti"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Planes</label>
+              {template.pricing?.plans?.map((plan: any, index: number) => (
+                <div key={index} className="border rounded-lg p-3 mb-3 bg-gray-50">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Nombre del Plan</label>
+                      <input
+                        type="text"
+                        value={plan.name || ''}
+                        onChange={(e) => updateTemplate(`pricing.plans.${index}.name`, e.target.value)}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                        placeholder="Básico"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Precio</label>
+                      <input
+                        type="text"
+                        value={plan.price || ''}
+                        onChange={(e) => updateTemplate(`pricing.plans.${index}.price`, e.target.value)}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                        placeholder="29"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Período</label>
+                      <input
+                        type="text"
+                        value={plan.period || ''}
+                        onChange={(e) => updateTemplate(`pricing.plans.${index}.period`, e.target.value)}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                        placeholder="mes"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <label className="block text-xs font-medium mb-1">Texto del Botón</label>
+                    <input
+                      type="text"
+                      value={plan.cta_text || ''}
+                      onChange={(e) => updateTemplate(`pricing.plans.${index}.cta_text`, e.target.value)}
+                      className="w-full px-2 py-1 border rounded text-sm"
+                      placeholder="Comenzar Ahora"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Form Section */}
+      <div className="border rounded-lg p-4">
+        <h3 className="text-lg font-semibold mb-4 flex items-center">
+          <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+          Formulario de Contacto
+        </h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Título del Formulario</label>
+              <input
+                type="text"
+                value={template.form?.title || ''}
+                onChange={(e) => updateTemplate('form.title', e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="Contáctanos"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Subtítulo</label>
+              <input
+                type="text"
+                value={template.form?.subtitle || ''}
+                onChange={(e) => updateTemplate('form.subtitle', e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="Nos pondremos en contacto contigo"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Texto del Botón</label>
+            <input
+              type="text"
+              value={template.form?.cta_text || ''}
+              onChange={(e) => updateTemplate('form.cta_text', e.target.value)}
+              className="w-full px-3 py-2 border rounded-md"
+              placeholder="Enviar Mensaje"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Texto de Privacidad</label>
+            <textarea
+              value={template.form?.privacy_text || ''}
+              onChange={(e) => updateTemplate('form.privacy_text', e.target.value)}
+              className="w-full px-3 py-2 border rounded-md"
+              rows={2}
+              placeholder="Respetamos tu privacidad y no compartiremos tu información."
             />
           </div>
         </div>

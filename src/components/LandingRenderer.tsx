@@ -341,14 +341,17 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
 
     let backgroundStyle: React.CSSProperties = {};
     
-    if (background.type === 'gradient') {
-      // Usar colores del template en lugar de colores fijos
-      const gradientColors = background.colors || [colors.primary, colors.secondary];
-      backgroundStyle.background = `linear-gradient(${background.direction || '135deg'}, ${gradientColors.join(', ')})`;
-    } else if (background.type === 'image') {
+    // Determinar tipo de fondo automáticamente
+    if (background.url && background.url.trim()) {
+      // Si hay una URL de imagen configurada, usar imagen de fondo
       backgroundStyle.backgroundImage = `url(${background.url})`;
       backgroundStyle.backgroundSize = 'cover';
       backgroundStyle.backgroundPosition = 'center';
+      backgroundStyle.backgroundRepeat = 'no-repeat';
+    } else if (background.type === 'gradient') {
+      // Usar colores del template en lugar de colores fijos
+      const gradientColors = background.colors || [colors.primary, colors.secondary];
+      backgroundStyle.background = `linear-gradient(${background.direction || '135deg'}, ${gradientColors.join(', ')})`;
     } else if (background.type === 'particle_animation') {
       // Usar colores del template para particle animation
       backgroundStyle.background = `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`;
@@ -373,6 +376,7 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
           </div>
         )}
 
+        {/* Overlay para imagen de fondo o gradiente */}
         {background.overlay && (
           <div 
             className="absolute inset-0" 
