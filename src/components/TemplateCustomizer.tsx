@@ -1347,13 +1347,28 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
               ⬇️ Scroll para ver todas las secciones
             </div>
             <div className="text-xs text-gray-500 px-2 py-1 bg-gray-200 rounded">
-              Colores: {template.colors?.primary || 'N/A'}
+              Escala: 35%
             </div>
           </div>
         </div>
         <div className="bg-gray-100 p-4">
-          <div className="max-h-[800px] overflow-y-auto border-4 border-gray-300 rounded-lg bg-white shadow-inner">
-            <div className="transform scale-50 origin-top-left" style={{ width: '200%' }}>
+          <div 
+            className="border-4 border-gray-300 rounded-lg bg-white shadow-inner"
+            style={{ 
+              height: '700px',
+              width: '100%',
+              overflow: 'auto'
+            }}
+          >
+            <div 
+              className="origin-top-left"
+              style={{ 
+                transform: 'scale(0.35)',
+                transformOrigin: 'top left',
+                width: '285.7%', // 100% / 0.35 = 285.7%
+                height: '285.7%'
+              }}
+            >
               <div key={`${template.colors?.primary}-${template.colors?.secondary}-${template.colors?.accent}-${template.fonts?.heading}-${template.fonts?.body}`}>
                 <LandingRenderer content={template} />
               </div>
@@ -1361,7 +1376,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
           </div>
           <div className="mt-2 text-center">
             <p className="text-xs text-gray-500">
-              Vista escalada al 50% - Las secciones incluyen: Hero, Características, Estadísticas, Testimoniales, Precios, Formulario y Social Proof
+              Vista escalada - Usa scroll para navegar por todas las secciones del template
             </p>
           </div>
         </div>
