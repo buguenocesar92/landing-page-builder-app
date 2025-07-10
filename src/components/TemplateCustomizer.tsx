@@ -10,7 +10,7 @@ interface TemplateCustomizerProps {
 }
 
 const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate, onSave }) => {
-  // Asegurar que el template inicial tenga una estructura básica
+  // Asegurar que el template inicial tenga una estructura completa
   const [template, setTemplate] = useState(() => {
     const defaultTemplate = {
       colors: {
@@ -26,13 +26,138 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
       },
       animations: {
         hero: { type: 'fadeInUp', duration: 1.0 },
-        features: { type: 'fadeInUp', duration: 1.0 }
+        features: { type: 'fadeInUp', duration: 1.0 },
+        typing_effect: { enabled: false }
       },
       hero: {
-        title: 'Tu Título Aquí',
-        subtitle: 'Subtítulo explicativo',
-        description: 'Descripción detallada de tu propuesta de valor',
-        cta_text: 'Comenzar Ahora'
+        title: 'Automatiza tu Negocio con IA',
+        subtitle: 'La plataforma más avanzada para gestionar tu empresa',
+        description: 'Aumenta tu productividad en un 300% con nuestras herramientas de automatización basadas en inteligencia artificial.',
+        cta_text: 'Prueba Gratis por 14 Días',
+        background: {
+          type: 'gradient',
+          colors: ['#667eea', '#764ba2']
+        }
+      },
+      features: {
+        title: 'Características Destacadas',
+        subtitle: 'Todo lo que necesitas para hacer crecer tu negocio',
+        items: [
+          {
+            title: 'IA Avanzada',
+            description: 'Automatización inteligente que aprende de tus procesos',
+            icon: 'zap',
+            image: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=500&h=300&fit=crop'
+          },
+          {
+            title: 'Seguridad Total',
+            description: 'Protección de datos con encriptación de nivel empresarial',
+            icon: 'shield',
+            image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=500&h=300&fit=crop'
+          },
+          {
+            title: 'Analytics Avanzados',
+            description: 'Insights detallados para tomar mejores decisiones',
+            icon: 'trending-up',
+            image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&h=300&fit=crop'
+          }
+        ]
+      },
+      stats: {
+        title: 'Números que Hablan',
+        items: [
+          { value: 10000, suffix: '+', label: 'Empresas Confiaron' },
+          { value: 99, suffix: '%', label: 'Uptime Garantizado' },
+          { value: 300, suffix: '%', label: 'Aumento Productividad' },
+          { value: 24, suffix: '/7', label: 'Soporte Técnico' }
+        ]
+      },
+      testimonials: {
+        title: 'Lo que Dicen Nuestros Clientes',
+        items: [
+          {
+            name: 'María González',
+            role: 'CEO, TechStart',
+            comment: 'Increíble plataforma que transformó completamente nuestros procesos.',
+            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b0c0?w=100&h=100&fit=crop&crop=face',
+            rating: 5
+          },
+          {
+            name: 'Carlos Rodríguez',
+            role: 'Fundador, InnovateLab',
+            comment: 'La mejor inversión que hemos hecho. ROI increíble en solo 3 meses.',
+            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+            rating: 5
+          }
+        ]
+      },
+      pricing: {
+        title: 'Planes Flexibles',
+        subtitle: 'Elige el plan perfecto para tu negocio',
+        plans: [
+          {
+            name: 'Starter',
+            price: 29,
+            period: 'mes',
+            features: [
+              'Hasta 1,000 automatizaciones/mes',
+              'Soporte por email',
+              'Dashboard básico',
+              'Integraciones básicas'
+            ],
+            cta_text: 'Comenzar Gratis',
+            popular: false
+          },
+          {
+            name: 'Pro',
+            price: 99,
+            period: 'mes',
+            features: [
+              'Automatizaciones ilimitadas',
+              'Soporte prioritario 24/7',
+              'Analytics avanzados',
+              'Todas las integraciones',
+              'IA personalizada'
+            ],
+            cta_text: 'Probar Pro',
+            popular: true
+          },
+          {
+            name: 'Enterprise',
+            price: 299,
+            period: 'mes',
+            features: [
+              'Todo lo de Pro',
+              'Infraestructura dedicada',
+              'Soporte telefónico',
+              'Consultoría personalizada',
+              'SLA garantizado'
+            ],
+            cta_text: 'Contactar Ventas',
+            popular: false
+          }
+        ]
+      },
+      form: {
+        title: 'Comienza Tu Transformación Digital',
+        subtitle: '¡Únete a miles de empresas que ya automatizaron su éxito!',
+        cta_text: 'Comenzar Ahora',
+        fields: [
+          { name: 'name', label: 'Nombre Completo', type: 'text', required: true, icon: 'user' },
+          { name: 'email', label: 'Correo Electrónico', type: 'email', required: true, icon: 'mail' },
+          { name: 'company', label: 'Empresa', type: 'text', required: false, icon: 'building' },
+          { name: 'phone', label: 'Teléfono', type: 'tel', required: false, icon: 'phone' },
+          { name: 'message', label: 'Cuéntanos sobre tu proyecto', type: 'textarea', required: false, icon: 'message-square' }
+        ],
+        privacy_text: 'Al enviar este formulario, aceptas nuestros términos y condiciones.'
+      },
+      social_proof: {
+        title: 'Empresas que confían en nosotros',
+        logos: [
+          'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=200&h=100&fit=crop',
+          'https://images.unsplash.com/photo-1611647832580-377268dba7cb?w=200&h=100&fit=crop',
+          'https://images.unsplash.com/photo-1611605698323-b1e99cfd37ea?w=200&h=100&fit=crop'
+        ]
       },
       ...initialTemplate
     };
@@ -509,20 +634,25 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
           <h3 className="text-lg font-semibold">Vista Previa en Tiempo Real</h3>
           <div className="flex items-center space-x-3">
             <div className="text-sm text-gray-600">
-              Scroll para ver más contenido
+              ⬇️ Scroll para ver todas las secciones
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-gray-500 px-2 py-1 bg-gray-200 rounded">
               Colores: {template.colors?.primary || 'N/A'}
             </div>
           </div>
         </div>
-        <div className="bg-gray-100">
-          <div className="max-h-[600px] overflow-y-auto border-4 border-gray-300 rounded-lg m-4">
-            <div className="transform scale-75 origin-top-left" style={{ width: '133.33%' }}>
-              <div key={`${template.colors?.primary}-${template.colors?.secondary}-${template.colors?.accent}`}>
+        <div className="bg-gray-100 p-4">
+          <div className="max-h-[800px] overflow-y-auto border-4 border-gray-300 rounded-lg bg-white shadow-inner">
+            <div className="transform scale-50 origin-top-left" style={{ width: '200%' }}>
+              <div key={`${template.colors?.primary}-${template.colors?.secondary}-${template.colors?.accent}-${template.fonts?.heading}-${template.fonts?.body}`}>
                 <LandingRenderer content={template} />
               </div>
             </div>
+          </div>
+          <div className="mt-2 text-center">
+            <p className="text-xs text-gray-500">
+              Vista escalada al 50% - Las secciones incluyen: Hero, Características, Estadísticas, Testimoniales, Precios, Formulario y Social Proof
+            </p>
           </div>
         </div>
       </div>
