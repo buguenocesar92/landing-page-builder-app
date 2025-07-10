@@ -86,6 +86,8 @@ const TypingEffect: React.FC<{ texts: string[]; speed?: number }> = ({ texts, sp
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
+    if (!texts || texts.length === 0) return;
+
     const timeout = setTimeout(() => {
       const fullText = texts[currentIndex % texts.length];
       
@@ -107,7 +109,7 @@ const TypingEffect: React.FC<{ texts: string[]; speed?: number }> = ({ texts, sp
   }, [currentText, isDeleting, currentIndex, texts, speed]);
 
   return (
-    <span className="border-r-2 border-current pr-1 animate-pulse">
+    <span className="text-blue-400 border-r-2 border-current pr-1 animate-pulse">
       {currentText}
     </span>
   );
@@ -216,7 +218,7 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
   const colors = content.colors || {};
   const animations = content.animations || {};
 
-  const getIcon = (iconName: string) => {
+  const getIcon = (iconName: string, size: string = 'h-6 w-6') => {
     const icons: Record<string, any> = {
       zap: Zap,
       shield: Shield,
@@ -231,7 +233,7 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
       'message-square': MessageSquare,
     };
     const IconComponent = icons[iconName] || User;
-    return <IconComponent className="h-6 w-6" />;
+    return <IconComponent className={size} />;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -258,6 +260,12 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
       backgroundStyle.backgroundImage = `url(${background.url})`;
       backgroundStyle.backgroundSize = 'cover';
       backgroundStyle.backgroundPosition = 'center';
+    } else if (background.type === 'particle_animation') {
+      // Fallback to dark gradient for particle animation
+      backgroundStyle.background = `linear-gradient(135deg, #1f2937, #111827)`;
+    } else {
+      // Default dark background
+      backgroundStyle.backgroundColor = '#1f2937';
     }
 
     return (
@@ -265,6 +273,17 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
         className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden"
         style={backgroundStyle}
       >
+        {/* Particle animation simulation with CSS */}
+        {background.type === 'particle_animation' && (
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute animate-pulse bg-blue-500 w-2 h-2 rounded-full opacity-30" style={{ top: '20%', left: '10%', animationDelay: '0s' }}></div>
+            <div className="absolute animate-pulse bg-blue-400 w-1 h-1 rounded-full opacity-40" style={{ top: '60%', left: '80%', animationDelay: '1s' }}></div>
+            <div className="absolute animate-pulse bg-blue-300 w-3 h-3 rounded-full opacity-20" style={{ top: '40%', left: '60%', animationDelay: '2s' }}></div>
+            <div className="absolute animate-pulse bg-blue-500 w-1 h-1 rounded-full opacity-50" style={{ top: '80%', left: '20%', animationDelay: '1.5s' }}></div>
+            <div className="absolute animate-pulse bg-blue-400 w-2 h-2 rounded-full opacity-30" style={{ top: '30%', left: '90%', animationDelay: '0.5s' }}></div>
+          </div>
+        )}
+
         {background.overlay && (
           <div 
             className="absolute inset-0" 
@@ -334,6 +353,8 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
   const renderFeaturesSection = () => {
     const features = content.features || {};
     
+    if (!features.items) return null;
+
     return (
       <section className="py-20 px-4" style={{ backgroundColor: colors.background }}>
         <div className="max-w-6xl mx-auto">
@@ -375,7 +396,7 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
                       style={{ backgroundColor: `${colors.primary}20` }}
                     >
                       <div style={{ color: colors.primary }}>
-                        {getIcon(feature.icon)}
+                        {getIcon(feature.icon, 'h-6 w-6')}
                       </div>
                     </div>
                     <h3 className="text-xl font-bold" style={{ color: colors.text }}>
@@ -418,9 +439,14 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
                 delay={index * 0.3}
                 className="text-center text-white"
               >
-                <div className="mb-4">
-                  <div style={{ color: colors.accent }}>
-                    {getIcon(stat.icon)}
+                <div className="mb-6 flex justify-center">
+                  <div 
+                    className="p-4 rounded-full"
+                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                  >
+                    <div style={{ color: colors.accent }}>
+                      {getIcon(stat.icon, 'h-8 w-8')}
+                    </div>
                   </div>
                 </div>
                 <AnimatedCounter 
@@ -522,7 +548,7 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
                     </label>
                     <div className="relative">
                       <div className="absolute left-3 top-1/2 transform -translate-y-1/2" style={{ color: colors.primary }}>
-                        {getIcon(field.icon)}
+                        {getIcon(field.icon, 'h-6 w-6')}
                       </div>
                       {field.type === 'textarea' ? (
                         <textarea
@@ -572,6 +598,259 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
     );
   };
 
+  const renderPricingSection = () => {
+    const pricing = content.pricing || {};
+    
+    if (!pricing.plans) return null;
+
+    return (
+      <section className="py-20 px-4" style={{ backgroundColor: colors.background }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <AnimatedSection>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6" style={{ color: colors.text }}>
+                {pricing.title}
+              </h2>
+              {pricing.subtitle && (
+                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                  {pricing.subtitle}
+                </p>
+              )}
+            </AnimatedSection>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {pricing.plans.map((plan: any, index: number) => (
+              <AnimatedSection
+                key={index}
+                delay={index * 0.2}
+                className={`relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow ${
+                  plan.popular ? 'ring-2 ring-blue-500 scale-105' : ''
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-semibold">
+                      Más Popular
+                    </span>
+                  </div>
+                )}
+                
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold mb-4" style={{ color: colors.text }}>
+                    {plan.name}
+                  </h3>
+                  <div className="mb-4">
+                    <span className="text-5xl font-bold" style={{ color: colors.primary }}>
+                      ${plan.price}
+                    </span>
+                    <span className="text-gray-600">/{plan.period}</span>
+                  </div>
+                </div>
+
+                <ul className="space-y-4 mb-8">
+                  {plan.features?.map((feature: string, featureIndex: number) => (
+                    <li key={featureIndex} className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                      <span className="text-gray-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  className={`w-full py-3 px-6 rounded-lg font-semibold transition-all hover:scale-105 ${
+                    plan.popular 
+                      ? 'text-white shadow-lg' 
+                      : 'border-2 hover:shadow-md'
+                  }`}
+                  style={{
+                    backgroundColor: plan.popular ? colors.primary : 'transparent',
+                    borderColor: plan.popular ? colors.primary : colors.primary,
+                    color: plan.popular ? 'white' : colors.primary
+                  }}
+                >
+                  {plan.cta_text}
+                </button>
+              </AnimatedSection>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  const renderProductShowcase = () => {
+    const products = content.product_showcase || {};
+    
+    if (!products.items) return null;
+
+    return (
+      <section className="py-20 px-4" style={{ backgroundColor: colors.background }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <AnimatedSection>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6" style={{ color: colors.text }}>
+                {products.title}
+              </h2>
+            </AnimatedSection>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12">
+            {products.items.map((product: any, index: number) => (
+              <AnimatedSection
+                key={index}
+                delay={index * 0.3}
+                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
+              >
+                <div className="relative h-80">
+                  {product.gallery && product.gallery.length > 1 ? (
+                    <ImageGallery images={product.gallery} alt={product.name} />
+                  ) : (
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
+                </div>
+                
+                <div className="p-8">
+                  <h3 className="text-2xl font-bold mb-3" style={{ color: colors.text }}>
+                    {product.name}
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    {product.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-3xl font-bold" style={{ color: colors.primary }}>
+                      ${product.price} {product.currency}
+                    </span>
+                    <button
+                      className="px-6 py-2 rounded-lg font-semibold transition-all hover:scale-105"
+                      style={{
+                        backgroundColor: colors.accent,
+                        color: colors.text
+                      }}
+                    >
+                      Ver Detalles
+                    </button>
+                  </div>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  const renderVideoSection = () => {
+    const video = content.video_section || {};
+    
+    if (!video.video_url) return null;
+
+    return (
+      <section className="py-20 px-4" style={{ backgroundColor: colors.primary }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <AnimatedSection>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+                {video.title}
+              </h2>
+              {video.subtitle && (
+                <p className="text-xl text-white opacity-90">
+                  {video.subtitle}
+                </p>
+              )}
+            </AnimatedSection>
+          </div>
+
+          <AnimatedSection delay={0.3}>
+            <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl">
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center group cursor-pointer">
+                <div className="relative w-full h-full">
+                  <Image
+                    src={video.thumbnail}
+                    alt="Video thumbnail"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-white bg-opacity-20 rounded-full p-6 group-hover:scale-110 transition-transform">
+                    <Play className="h-16 w-16 text-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </AnimatedSection>
+        </div>
+      </section>
+    );
+  };
+
+  const renderInteractiveDemo = () => {
+    const demo = content.interactive_demo || {};
+    
+    if (!demo.enabled) return null;
+
+    return (
+      <section className="py-20 px-4" style={{ backgroundColor: colors.background }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <AnimatedSection>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6" style={{ color: colors.text }}>
+                {demo.title}
+              </h2>
+              {demo.subtitle && (
+                <p className="text-xl text-gray-600">
+                  {demo.subtitle}
+                </p>
+              )}
+            </AnimatedSection>
+          </div>
+
+          <AnimatedSection delay={0.3}>
+            <div className="bg-white rounded-2xl shadow-2xl p-8">
+              {demo.iframe_url && !demo.iframe_url.includes('example.com') ? (
+                <iframe
+                  src={demo.iframe_url}
+                  className="w-full h-96 rounded-lg border"
+                  frameBorder="0"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="bg-gray-100 rounded-lg h-96 flex flex-col items-center justify-center text-center p-8">
+                  <div className="mb-6">
+                    <div className="w-24 h-24 mx-auto bg-gray-300 rounded-lg flex items-center justify-center mb-4">
+                      <Play className="h-12 w-12 text-gray-500" />
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-700">
+                    Demo Interactivo Próximamente
+                  </h3>
+                  <p className="text-gray-600 mb-6 max-w-md">
+                    Estamos preparando una experiencia interactiva increíble para que puedas probar nuestra plataforma en tiempo real.
+                  </p>
+                  <button
+                    className="px-8 py-3 rounded-lg font-semibold transition-all hover:scale-105"
+                    style={{
+                      backgroundColor: colors.primary,
+                      color: 'white'
+                    }}
+                  >
+                    Solicitar Acceso Beta
+                  </button>
+                </div>
+              )}
+            </div>
+          </AnimatedSection>
+        </div>
+      </section>
+    );
+  };
+
   return (
     <div className="min-h-screen" style={{ fontFamily: content.fonts?.body || 'Inter, sans-serif' }}>
       {/* CSS para fuentes personalizadas */}
@@ -586,7 +865,11 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
       {renderHeroSection()}
       {renderFeaturesSection()}
       {renderStatsSection()}
+      {renderProductShowcase()}
+      {renderVideoSection()}
       {renderTestimonialsSection()}
+      {renderPricingSection()}
+      {renderInteractiveDemo()}
       {renderFormSection()}
       
       {/* Social Proof Section */}
