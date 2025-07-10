@@ -225,8 +225,15 @@ class ApiService {
     return response.data;
   }
 
+  // Método público para incrementar vistas de landing page
+  async incrementLandingViews(landingId: number): Promise<ApiResponse<any>> {
+    const response: AxiosResponse<ApiResponse<any>> = await this.api.post(`/landings/${landingId}/increment-views`);
+    return response.data;
+  }
+
+  // Método para generar slug
   async generateSlug(title: string): Promise<ApiResponse<{ slug: string }>> {
-    const response = await this.api.post('/utils/generate-slug', { title });
+    const response: AxiosResponse<ApiResponse<{ slug: string }>> = await this.api.post('/utils/generate-slug', { title });
     return response.data;
   }
 
