@@ -10,6 +10,25 @@ interface TemplateCustomizerProps {
 }
 
 const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate, onSave }) => {
+  // Estilos CSS para ocultar scrollbars en vista escalada
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+  
   // Asegurar que el template inicial tenga una estructura completa
   const [template, setTemplate] = useState(() => {
     const defaultTemplate = {
@@ -165,7 +184,8 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
   });
   
   const [activeTab, setActiveTab] = useState('colors');
-
+  const [previewMode, setPreviewMode] = useState<'scaled' | 'tablet' | 'mobile'>('scaled');
+  
   const updateTemplate = (path: string, value: any) => {
     const keys = path.split('.');
     const updated = JSON.parse(JSON.stringify(template));
@@ -195,6 +215,40 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
     updated.fonts.heading = pair.heading;
     updated.fonts.body = pair.body;
     setTemplate(updated);
+  };
+
+  const getPreviewConfig = () => {
+    switch (previewMode) {
+      case 'scaled':
+        return {
+          container: { width: '100%', height: '800px', overflow: 'hidden', position: 'relative' as const },
+          content: { 
+            transform: 'scale(0.2)', 
+            transformOrigin: 'top left', 
+            width: '500%', 
+            height: '500%',
+            overflow: 'hidden'
+          },
+          title: '🖥️ Vista Escalada',
+          description: 'Vista completa sin scroll - Todo el contenido visible a escala 20%'
+        };
+      case 'tablet':
+        return {
+          container: { width: '768px', height: '650px', overflow: 'auto', border: '2px solid #e5e7eb' },
+          content: { width: '100%', height: 'auto' },
+          title: '📱 Vista Tablet',
+          description: 'Vista de tablet (768px de ancho) - Scroll para navegar'
+        };
+      case 'mobile':
+        return {
+          container: { width: '375px', height: '650px', overflow: 'auto', border: '2px solid #e5e7eb' },
+          content: { width: '100%', height: 'auto' },
+          title: '📱 Vista Mobile',
+          description: 'Vista móvil (375px de ancho) - Scroll para navegar'
+        };
+      default:
+        return getPreviewConfig();
+    }
   };
 
   const colorPresets = [
@@ -1340,44 +1394,93 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
 
       {/* Preview en tiempo real */}
       <div className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="bg-gray-50 px-6 py-3 border-b flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Vista Previa en Tiempo Real</h3>
-          <div className="flex items-center space-x-3">
-            <div className="text-sm text-gray-600">
-              ⬇️ Scroll para ver todas las secciones
+        <div className="bg-gray-50 px-6 py-3 border-b">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Vista Previa en Tiempo Real</h3>
+            
+            {/* Botones de selección de vista */}
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setPreviewMode('scaled')}
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  previewMode === 'scaled'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                🖥️ Escalada
+              </button>
+              <button
+                onClick={() => setPreviewMode('tablet')}
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  previewMode === 'tablet'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                📱 Tablet
+              </button>
+              <button
+                onClick={() => setPreviewMode('mobile')}
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  previewMode === 'mobile'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                📱 Mobile
+              </button>
             </div>
+          </div>
+          
+          <div className="mt-2 flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              {getPreviewConfig().description}
+            </p>
             <div className="text-xs text-gray-500 px-2 py-1 bg-gray-200 rounded">
-              Escala: 35%
+              {getPreviewConfig().title}
             </div>
           </div>
         </div>
-        <div className="bg-gray-100 p-4">
+        
+        <div className="bg-gray-100 p-6">
           <div 
-            className="border-4 border-gray-300 rounded-lg bg-white shadow-inner"
-            style={{ 
-              height: '700px',
-              width: '100%',
-              overflow: 'auto'
-            }}
+            className={`bg-white ${previewMode === 'scaled' ? 'border-2 border-gray-300' : ''} rounded-lg shadow-lg mx-auto relative`}
+            style={getPreviewConfig().container}
           >
+            {/* Indicador de escala para vista escalada */}
+            {previewMode === 'scaled' && (
+              <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs font-medium z-10">
+                20% Escala
+              </div>
+            )}
+            
             <div 
-              className="origin-top-left"
-              style={{ 
-                transform: 'scale(0.35)',
-                transformOrigin: 'top left',
-                width: '285.7%', // 100% / 0.35 = 285.7%
-                height: '285.7%'
+              style={{
+                ...getPreviewConfig().content,
+                scrollbarWidth: previewMode === 'scaled' ? 'none' : 'thin',
+                msOverflowStyle: previewMode === 'scaled' ? 'none' : 'auto'
               }}
+              className={previewMode === 'scaled' ? 'no-scrollbar' : ''}
             >
-              <div key={`${template.colors?.primary}-${template.colors?.secondary}-${template.colors?.accent}-${template.fonts?.heading}-${template.fonts?.body}`}>
+              <div 
+                key={`${template.colors?.primary}-${template.colors?.secondary}-${template.colors?.accent}-${template.fonts?.heading}-${template.fonts?.body}-${previewMode}`}
+                style={{ width: '100%' }}
+              >
                 <LandingRenderer content={template} />
               </div>
             </div>
           </div>
-          <div className="mt-2 text-center">
-            <p className="text-xs text-gray-500">
-              Vista escalada - Usa scroll para navegar por todas las secciones del template
+          
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-600">
+              Los cambios se reflejan automáticamente en la vista seleccionada
             </p>
+            {previewMode === 'scaled' && (
+              <p className="text-xs text-gray-500 mt-1">
+                💡 Tip: Usa la vista Tablet o Mobile para navegar con scroll
+              </p>
+            )}
           </div>
         </div>
       </div>
