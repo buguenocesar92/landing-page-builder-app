@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Eye, Download, Palette, Type, Image, Zap } from 'lucide-react';
+import { Eye, Download, Palette, Type, Image, Zap, TrendingUp } from 'lucide-react';
 import LandingRenderer from './LandingRenderer';
 
 interface TemplateCustomizerProps {
@@ -385,6 +385,17 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
 
   const renderAnimationsTab = () => (
     <div className="space-y-6">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-center space-x-2 mb-2">
+          <Zap className="h-5 w-5 text-blue-600" />
+          <h4 className="font-medium text-blue-900">Animaciones Activas</h4>
+        </div>
+        <p className="text-sm text-blue-700">
+          Las animaciones se aplican cuando el usuario hace scroll hasta cada sección. 
+          Actualiza la página para ver los cambios.
+        </p>
+      </div>
+
       <div>
         <h3 className="text-lg font-semibold mb-4">Estilo de Animaciones</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -392,16 +403,40 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
             <button
               key={index}
               onClick={() => {
+                // Actualizar múltiples configuraciones de animación
                 updateTemplate('animations.hero.type', anim.type);
                 updateTemplate('animations.hero.duration', anim.duration);
+                updateTemplate('animations.hero.delay', 0.2);
                 updateTemplate('animations.features.type', anim.type);
                 updateTemplate('animations.features.duration', anim.duration);
+                updateTemplate('animations.features.delay', 0.1);
+                updateTemplate('animations.cta.type', anim.type);
+                updateTemplate('animations.cta.duration', anim.duration);
+                updateTemplate('animations.cta.delay', 0.3);
+                
+                // Mostrar feedback visual
+                console.log('Animación aplicada:', anim.name, anim.type);
               }}
-              className="p-4 border rounded-lg hover:shadow-md transition-shadow text-left"
+              className={`p-4 border rounded-lg hover:shadow-md transition-shadow text-left ${
+                template.animations?.hero?.type === anim.type 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200'
+              }`}
             >
               <div className="flex items-center space-x-2 mb-2">
-                <Zap className="h-5 w-5 text-indigo-600" />
+                <Zap className={`h-5 w-5 ${
+                  template.animations?.hero?.type === anim.type 
+                    ? 'text-blue-600' 
+                    : 'text-gray-400'
+                }`} />
                 <span className="font-medium">{anim.name}</span>
+                {template.animations?.hero?.type === anim.type && (
+                  <div className="ml-auto">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      Activo
+                    </span>
+                  </div>
+                )}
               </div>
               <p className="text-sm text-gray-600">
                 {anim.type} - {anim.duration}s
@@ -412,44 +447,149 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold mb-4">Configuración Avanzada</h3>
+        <h3 className="text-lg font-semibold mb-4">Efectos Especiales</h3>
         <div className="space-y-4">
-          <div>
-            <label className="flex items-center space-x-2">
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                <Type className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-900">
+                  Efecto de escritura en el título
+                </label>
+                <p className="text-sm text-gray-500">
+                  Texto que se escribe automáticamente
+                </p>
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={template.animations?.typing_effect?.enabled || false}
-                onChange={(e) => updateTemplate('animations.typing_effect.enabled', e.target.checked)}
-                className="rounded"
+                onChange={(e) => {
+                  updateTemplate('animations.typing_effect.enabled', e.target.checked);
+                  if (e.target.checked) {
+                    updateTemplate('animations.typing_effect.texts', [
+                      'Innovación Digital',
+                      'Soluciones Creativas',
+                      'Tecnología Avanzada'
+                    ]);
+                    updateTemplate('animations.typing_effect.speed', 100);
+                  }
+                }}
+                className="sr-only"
               />
-              <span>Efecto de escritura en el título</span>
+              <div className="relative">
+                <div className={`block w-14 h-8 rounded-full ${
+                  template.animations?.typing_effect?.enabled 
+                    ? 'bg-blue-600' 
+                    : 'bg-gray-200'
+                }`}></div>
+                <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition ${
+                  template.animations?.typing_effect?.enabled 
+                    ? 'transform translate-x-6' 
+                    : ''
+                }`}></div>
+              </div>
             </label>
           </div>
 
-          <div>
-            <label className="flex items-center space-x-2">
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-900">
+                  Contadores animados
+                </label>
+                <p className="text-sm text-gray-500">
+                  Números que cuentan hasta el valor final
+                </p>
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={template.animations?.counter?.enabled || false}
-                onChange={(e) => updateTemplate('animations.counter.enabled', e.target.checked)}
-                className="rounded"
+                onChange={(e) => {
+                  updateTemplate('animations.counter.enabled', e.target.checked);
+                  if (e.target.checked) {
+                    updateTemplate('animations.counter.duration', 2.0);
+                  }
+                }}
+                className="sr-only"
               />
-              <span>Contadores animados</span>
+              <div className="relative">
+                <div className={`block w-14 h-8 rounded-full ${
+                  template.animations?.counter?.enabled 
+                    ? 'bg-green-600' 
+                    : 'bg-gray-200'
+                }`}></div>
+                <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition ${
+                  template.animations?.counter?.enabled 
+                    ? 'transform translate-x-6' 
+                    : ''
+                }`}></div>
+              </div>
             </label>
           </div>
 
-          <div>
-            <label className="flex items-center space-x-2">
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                <Image className="h-5 w-5 text-indigo-600" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-900">
+                  Efecto parallax en imágenes
+                </label>
+                <p className="text-sm text-gray-500">
+                  Movimiento suave de fondo al hacer scroll
+                </p>
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={template.animations?.parallax?.enabled || false}
-                onChange={(e) => updateTemplate('animations.parallax.enabled', e.target.checked)}
-                className="rounded"
+                onChange={(e) => {
+                  updateTemplate('animations.parallax.enabled', e.target.checked);
+                  if (e.target.checked) {
+                    updateTemplate('animations.parallax.speed', 0.5);
+                  }
+                }}
+                className="sr-only"
               />
-              <span>Efecto parallax en imágenes</span>
+              <div className="relative">
+                <div className={`block w-14 h-8 rounded-full ${
+                  template.animations?.parallax?.enabled 
+                    ? 'bg-indigo-600' 
+                    : 'bg-gray-200'
+                }`}></div>
+                <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition ${
+                  template.animations?.parallax?.enabled 
+                    ? 'transform translate-x-6' 
+                    : ''
+                }`}></div>
+              </div>
             </label>
           </div>
         </div>
+      </div>
+
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="flex items-center space-x-2 mb-2">
+          <svg className="h-5 w-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          <h4 className="font-medium text-yellow-900">Consejo</h4>
+        </div>
+        <p className="text-sm text-yellow-700">
+          Para ver las animaciones funcionando, actualiza la página y haz scroll lentamente. 
+          Las animaciones se activan cuando cada sección entra en el viewport.
+        </p>
       </div>
     </div>
   );
@@ -618,7 +758,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
                                 </p>
                               </div>
                               <div class="grid md:grid-cols-3 gap-8">
-                                ${template.features?.items?.map((feature, index) => `
+                                ${template.features?.items?.map((feature: any, index: number) => `
                                   <div class="bg-white rounded-xl p-8 shadow-lg">
                                     <div class="flex items-center mb-4">
                                       <div class="p-3 rounded-lg mr-4" style="background-color: ${template.colors?.primary}20;">
@@ -642,7 +782,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
                                 </h2>
                               </div>
                               <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-                                ${template.stats?.items?.map((stat, index) => `
+                                ${template.stats?.items?.map((stat: any, index: number) => `
                                   <div class="text-center">
                                     <div class="text-4xl font-bold primary-color mb-2">
                                       ${stat.value}${stat.suffix || ''}
@@ -663,7 +803,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
                                 </h2>
                               </div>
                               <div class="grid md:grid-cols-2 gap-8">
-                                ${template.testimonials?.items?.map((testimonial, index) => `
+                                ${template.testimonials?.items?.map((testimonial: any, index: number) => `
                                   <div class="bg-white rounded-xl p-8 shadow-lg">
                                     <div class="flex items-center mb-4">
                                       <div class="w-12 h-12 rounded-full bg-gray-300 mr-4"></div>
@@ -694,7 +834,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
                                 </p>
                               </div>
                               <div class="grid md:grid-cols-3 gap-8">
-                                ${template.pricing?.plans?.map((plan, index) => `
+                                ${template.pricing?.plans?.map((plan: any, index: number) => `
                                   <div class="bg-white rounded-2xl p-8 shadow-lg ${plan.popular ? 'ring-2 ring-blue-500 scale-105' : ''}">
                                     ${plan.popular ? '<div class="text-center mb-4"><span class="bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-semibold">Más Popular</span></div>' : ''}
                                     <div class="text-center mb-8">
@@ -705,7 +845,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
                                       </div>
                                     </div>
                                     <ul class="space-y-4 mb-8">
-                                      ${plan.features?.map(feature => `
+                                      ${plan.features?.map((feature: any) => `
                                         <li class="flex items-start">
                                           <span class="text-green-500 mr-3">✓</span>
                                           <span class="text-gray-700">${feature}</span>
@@ -734,7 +874,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
                               </div>
                               <div class="bg-white rounded-xl p-8 shadow-2xl">
                                 <div class="grid gap-6">
-                                  ${template.form?.fields?.map(field => `
+                                  ${template.form?.fields?.map((field: any) => `
                                     <div>
                                       <label class="block text-sm font-medium mb-2 text-color">
                                         ${field.label} ${field.required ? '<span class="text-red-500">*</span>' : ''}
@@ -762,7 +902,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
                                 ${template.social_proof.title}
                               </h3>
                               <div class="flex justify-center items-center space-x-8 opacity-60">
-                                ${template.social_proof.logos?.map(logo => `
+                                ${template.social_proof.logos?.map((logo: any) => `
                                   <div class="relative h-12 w-32 bg-gray-200 rounded"></div>
                                 `).join('') || ''}
                               </div>

@@ -34,45 +34,78 @@ const AnimatedSection: React.FC<{
   className?: string;
 }> = ({ children, animation = 'fadeInUp', delay = 0, className = '' }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Debug: log when animations are being applied
+    console.log('AnimatedSection - Animation type:', animation, 'Delay:', delay);
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => setIsVisible(true), delay * 1000);
+        if (entry.isIntersecting && !hasAnimated) {
+          setTimeout(() => {
+            setIsVisible(true);
+            setHasAnimated(true);
+          }, delay * 1000);
         }
       },
-      { threshold: 0.1 }
+      {
+        threshold: 0.1,
+        rootMargin: '50px'
+      }
     );
 
     if (ref.current) {
       observer.observe(ref.current);
     }
 
-    return () => observer.disconnect();
-  }, [delay]);
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, [delay, hasAnimated, animation]);
 
-  const animationClasses: Record<string, string> = {
-    fadeInUp: `transform transition-all duration-1000 ${
-      isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-    }`,
-    slideInLeft: `transform transition-all duration-1000 ${
-      isVisible ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'
-    }`,
-    slideInRight: `transform transition-all duration-1000 ${
-      isVisible ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'
-    }`,
-    bounceIn: `transform transition-all duration-1000 ${
-      isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
-    }`,
-    staggeredFadeIn: `transform transition-all duration-800 ${
-      isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-    }`
+  const getAnimationClasses = () => {
+    const baseClasses = 'transition-all duration-1000 ease-out';
+    
+    if (!isVisible) {
+      // Estado inicial (antes de la animación)
+      switch (animation) {
+        case 'fadeInUp':
+          return `${baseClasses} opacity-0 transform translate-y-8`;
+        case 'slideInLeft':
+          return `${baseClasses} opacity-0 transform -translate-x-8`;
+        case 'slideInRight':
+          return `${baseClasses} opacity-0 transform translate-x-8`;
+        case 'bounceIn':
+          return `${baseClasses} opacity-0 transform scale-95`;
+        case 'staggeredFadeIn':
+          return `${baseClasses} opacity-0 transform translate-y-4`;
+        default:
+          return `${baseClasses} opacity-0 transform translate-y-4`;
+      }
+    } else {
+      // Estado final (después de la animación)
+      switch (animation) {
+        case 'bounceIn':
+          return `${baseClasses} opacity-100 transform scale-100 animate-bounce`;
+        default:
+          return `${baseClasses} opacity-100 transform translate-x-0 translate-y-0 scale-100`;
+      }
+    }
   };
 
   return (
-    <div ref={ref} className={`${animationClasses[animation] || animationClasses.fadeInUp} ${className}`}>
+    <div
+      ref={ref}
+      className={`${getAnimationClasses()} ${className}`}
+      style={{
+        transitionDelay: isVisible ? '0ms' : `${delay * 1000}ms`,
+        animationDelay: isVisible ? `${delay * 1000}ms` : '0ms'
+      }}
+    >
       {children}
     </div>
   );
@@ -235,6 +268,7 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
     // Debug: verificar si los colores están cambiando
     console.log('Colors updated:', colors);
     console.log('Fonts updated:', fonts);
+    console.log('Animations updated:', animations);
     
     // Aplicar variables CSS para colores
     const root = document.documentElement;
@@ -269,7 +303,7 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
     return () => {
       // Cleanup no necesario para este caso
     };
-  }, [colors, fonts]);
+  }, [colors, fonts, animations]);
 
   const getIcon = (iconName: string, size: string = 'h-6 w-6') => {
     const icons: Record<string, any> = {
