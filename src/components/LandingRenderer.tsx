@@ -232,6 +232,10 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
 
   // Aplicar estilos dinámicos
   useEffect(() => {
+    // Debug: verificar si los colores están cambiando
+    console.log('Colors updated:', colors);
+    console.log('Fonts updated:', fonts);
+    
     // Aplicar variables CSS para colores
     const root = document.documentElement;
     root.style.setProperty('--color-primary', colors.primary);
@@ -946,24 +950,6 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
       {/* CSS para fuentes personalizadas */}
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Lato:wght@300;400;700;900&family=Montserrat:wght@400;500;600;700;800;900&family=Roboto:wght@400;500;700;900&family=Poppins:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600;700;800&family=Source+Sans+Pro:wght@400;600;700;900&family=Nunito:wght@400;500;600;700;800;900&display=swap');
-        
-        :root {
-          --color-primary: ${colors.primary};
-          --color-secondary: ${colors.secondary};
-          --color-accent: ${colors.accent};
-          --color-background: ${colors.background};
-          --color-text: ${colors.text};
-          --font-heading: ${fonts.heading};
-          --font-body: ${fonts.body};
-        }
-        
-        h1, h2, h3, h4, h5, h6 {
-          font-family: ${fonts.heading}, sans-serif !important;
-        }
-        
-        p, span, div, input, textarea, button {
-          font-family: ${fonts.body}, sans-serif !important;
-        }
       `}</style>
 
       {renderHeroSection()}

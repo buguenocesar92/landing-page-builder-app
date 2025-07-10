@@ -55,6 +55,23 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
     setTemplate(updated);
   };
 
+  const updateColorPalette = (preset: { primary: string; secondary: string; accent: string }) => {
+    const updated = JSON.parse(JSON.stringify(template));
+    if (!updated.colors) updated.colors = {};
+    updated.colors.primary = preset.primary;
+    updated.colors.secondary = preset.secondary;
+    updated.colors.accent = preset.accent;
+    setTemplate(updated);
+  };
+
+  const updateFontPair = (pair: { heading: string; body: string }) => {
+    const updated = JSON.parse(JSON.stringify(template));
+    if (!updated.fonts) updated.fonts = {};
+    updated.fonts.heading = pair.heading;
+    updated.fonts.body = pair.body;
+    setTemplate(updated);
+  };
+
   const colorPresets = [
     { name: 'Tech Blue', primary: '#3b82f6', secondary: '#1e40af', accent: '#fbbf24' },
     { name: 'Elegant Black', primary: '#1f2937', secondary: '#111827', accent: '#d4af37' },
@@ -86,11 +103,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
           {colorPresets.map((preset, index) => (
             <button
               key={index}
-              onClick={() => {
-                updateTemplate('colors.primary', preset.primary);
-                updateTemplate('colors.secondary', preset.secondary);
-                updateTemplate('colors.accent', preset.accent);
-              }}
+              onClick={() => updateColorPalette(preset)}
               className="p-4 border rounded-lg hover:shadow-md transition-shadow"
             >
               <div className="flex items-center space-x-3 mb-2">
@@ -185,10 +198,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
           {fontPairs.map((pair, index) => (
             <button
               key={index}
-              onClick={() => {
-                updateTemplate('fonts.heading', pair.heading);
-                updateTemplate('fonts.body', pair.body);
-              }}
+              onClick={() => updateFontPair(pair)}
               className="p-4 border rounded-lg hover:shadow-md transition-shadow text-left"
             >
               <div className="mb-2">
@@ -497,14 +507,21 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
       <div className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="bg-gray-50 px-6 py-3 border-b flex items-center justify-between">
           <h3 className="text-lg font-semibold">Vista Previa en Tiempo Real</h3>
-          <div className="text-sm text-gray-600">
-            Scroll para ver más contenido
+          <div className="flex items-center space-x-3">
+            <div className="text-sm text-gray-600">
+              Scroll para ver más contenido
+            </div>
+            <div className="text-xs text-gray-500">
+              Colores: {template.colors?.primary || 'N/A'}
+            </div>
           </div>
         </div>
         <div className="bg-gray-100">
           <div className="max-h-[600px] overflow-y-auto border-4 border-gray-300 rounded-lg m-4">
             <div className="transform scale-75 origin-top-left" style={{ width: '133.33%' }}>
-              <LandingRenderer content={template} />
+              <div key={`${template.colors?.primary}-${template.colors?.secondary}-${template.colors?.accent}`}>
+                <LandingRenderer content={template} />
+              </div>
             </div>
           </div>
         </div>
