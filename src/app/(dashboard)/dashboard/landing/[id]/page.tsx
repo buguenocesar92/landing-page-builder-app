@@ -14,10 +14,12 @@ import {
   Edit, 
   Trash2,
   Download,
-  RefreshCw
+  RefreshCw,
+  Settings
 } from 'lucide-react';
 import Link from 'next/link';
 import type { Landing, LandingAnalytics, Lead } from '@/types';
+import TemplateCustomizer from '@/components/TemplateCustomizer';
 
 export default function LandingDetailPage() {
   const { user } = useAuth();
@@ -31,6 +33,7 @@ export default function LandingDetailPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && landingId) {
@@ -47,11 +50,11 @@ export default function LandingDetailPage() {
         apiService.getLeads(),
       ]);
 
-      if (landingResponse.success) {
+      if (landingResponse.success && landingResponse.data) {
         setLanding(landingResponse.data);
       }
 
-      if (analyticsResponse.success) {
+      if (analyticsResponse.success && analyticsResponse.data) {
         setAnalytics(analyticsResponse.data);
       }
 
@@ -104,7 +107,7 @@ export default function LandingDetailPage() {
     
     try {
       const response = await apiService.duplicateLanding(landing.id);
-      if (response.success) {
+      if (response.success && response.data) {
         router.push(`/dashboard/landing/${response.data.id}`);
       } else {
         alert('Error al duplicar la landing page');
@@ -112,6 +115,31 @@ export default function LandingDetailPage() {
     } catch (error) {
       console.error('Error duplicating landing:', error);
       alert('Error al duplicar la landing page');
+    }
+  };
+
+  const handleSaveTemplate = async (customizedTemplate: any) => {
+    if (!landing) return;
+    
+    try {
+      const response = await apiService.updateLanding(landing.id, {
+        title: landing.title,
+        slug: landing.slug,
+        template_id: landing.template_id,
+        content: customizedTemplate,
+        is_active: landing.is_active
+      });
+      
+      if (response.success && response.data) {
+        setLanding(response.data);
+        alert('Template guardado exitosamente');
+        setIsEditMode(false);
+      } else {
+        alert('Error al guardar el template');
+      }
+    } catch (error) {
+      console.error('Error saving template:', error);
+      alert('Error al guardar el template');
     }
   };
 
@@ -156,6 +184,18 @@ export default function LandingDetailPage() {
 
             <div className="flex items-center space-x-3">
               <button
+                onClick={() => setIsEditMode(!isEditMode)}
+                className={`flex items-center px-3 py-2 border rounded-md transition-colors ${
+                  isEditMode
+                    ? 'bg-indigo-600 text-white border-indigo-600'
+                    : 'text-indigo-600 hover:text-indigo-700 border-indigo-300'
+                }`}
+              >
+                <Settings className="h-4 w-4 mr-1" />
+                {isEditMode ? 'Ver Dashboard' : 'Editar Template'}
+              </button>
+              
+              <button
                 onClick={handleRefresh}
                 disabled={refreshing}
                 className="flex items-center px-3 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md"
@@ -187,8 +227,16 @@ export default function LandingDetailPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Analytics Cards */}
-        {analytics && (
+        {/* Mostrar Editor o Dashboard */}
+        {isEditMode ? (
+          <TemplateCustomizer 
+            initialTemplate={landing.content}
+            onSave={handleSaveTemplate}
+          />
+        ) : (
+          <>
+            {/* Analytics Cards */}
+            {analytics && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
@@ -373,6 +421,8 @@ export default function LandingDetailPage() {
             </div>
           </div>
         </div>
+          </>
+        )}
       </main>
     </div>
   );

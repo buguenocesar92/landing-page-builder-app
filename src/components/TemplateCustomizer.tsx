@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Eye, Download, Palette, Type, Image, Zap } from 'lucide-react';
+import LandingRenderer from './LandingRenderer';
 
 interface TemplateCustomizerProps {
   initialTemplate: any;
@@ -9,9 +10,36 @@ interface TemplateCustomizerProps {
 }
 
 const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate, onSave }) => {
-  const [template, setTemplate] = useState(initialTemplate);
+  // Asegurar que el template inicial tenga una estructura básica
+  const [template, setTemplate] = useState(() => {
+    const defaultTemplate = {
+      colors: {
+        primary: '#3b82f6',
+        secondary: '#1e40af',
+        accent: '#fbbf24',
+        background: '#ffffff',
+        text: '#1f2937'
+      },
+      fonts: {
+        heading: 'Inter',
+        body: 'Inter'
+      },
+      animations: {
+        hero: { type: 'fadeInUp', duration: 1.0 },
+        features: { type: 'fadeInUp', duration: 1.0 }
+      },
+      hero: {
+        title: 'Tu Título Aquí',
+        subtitle: 'Subtítulo explicativo',
+        description: 'Descripción detallada de tu propuesta de valor',
+        cta_text: 'Comenzar Ahora'
+      },
+      ...initialTemplate
+    };
+    return defaultTemplate;
+  });
+  
   const [activeTab, setActiveTab] = useState('colors');
-  const previewRef = useRef<HTMLIFrameElement>(null);
 
   const updateTemplate = (path: string, value: any) => {
     const keys = path.split('.');
@@ -390,7 +418,34 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
             </h2>
             <div className="flex space-x-3">
               <button
-                onClick={() => {/* Lógica de preview */}}
+                onClick={() => {
+                  // Abrir vista previa en modal o nueva pestaña
+                  const previewWindow = window.open('', '_blank');
+                  if (previewWindow) {
+                    previewWindow.document.write(`
+                      <!DOCTYPE html>
+                      <html>
+                        <head>
+                          <title>Vista Previa - Template</title>
+                          <script src="https://cdn.tailwindcss.com"></script>
+                          <style>
+                            body { margin: 0; padding: 0; font-family: ${template.fonts?.body || 'Inter'}, sans-serif; }
+                            h1, h2, h3, h4, h5, h6 { font-family: ${template.fonts?.heading || 'Inter'}, sans-serif; }
+                          </style>
+                        </head>
+                        <body>
+                          <div id="preview-container"></div>
+                          <script>
+                            // Aquí se renderizaría el template
+                            document.getElementById('preview-container').innerHTML = 
+                              '<div style="min-height: 100vh; background: linear-gradient(135deg, ${template.colors?.primary || '#3b82f6'}, ${template.colors?.secondary || '#1e40af'}); display: flex; align-items: center; justify-content: center; text-align: center; color: white; padding: 2rem;"><div><h1 style="font-size: 3rem; margin-bottom: 1rem;">${template.hero?.title || 'Tu Título Aquí'}</h1><p style="font-size: 1.2rem; margin-bottom: 2rem;">${template.hero?.description || 'Descripción'}</p><button style="background: ${template.colors?.accent || '#fbbf24'}; color: white; padding: 1rem 2rem; border: none; border-radius: 0.5rem; font-size: 1.1rem; cursor: pointer;">${template.hero?.cta_text || 'Comenzar Ahora'}</button></div></div>';
+                          </script>
+                        </body>
+                      </html>
+                    `);
+                    previewWindow.document.close();
+                  }
+                }}
                 className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
               >
                 <Eye className="h-4 w-4 mr-2" />
@@ -440,61 +495,16 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
 
       {/* Preview en tiempo real */}
       <div className="mt-8 bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="bg-gray-50 px-6 py-3 border-b">
+        <div className="bg-gray-50 px-6 py-3 border-b flex items-center justify-between">
           <h3 className="text-lg font-semibold">Vista Previa en Tiempo Real</h3>
+          <div className="text-sm text-gray-600">
+            Scroll para ver más contenido
+          </div>
         </div>
-        <div className="p-6">
-          <div 
-            className="rounded-lg overflow-hidden"
-            style={{
-              background: `linear-gradient(135deg, ${template.colors?.primary || '#3b82f6'}15, ${template.colors?.secondary || '#1e40af'}15)`,
-              minHeight: '400px'
-            }}
-          >
-            <div className="p-8 text-center">
-              <h1 
-                className="text-4xl font-bold mb-4"
-                style={{ 
-                  color: template.colors?.text || '#1f2937',
-                  fontFamily: template.fonts?.heading || 'Inter'
-                }}
-              >
-                {template.hero?.title || 'Tu Título Aquí'}
-              </h1>
-              
-              {template.hero?.subtitle && (
-                <h2 
-                  className="text-xl mb-6"
-                  style={{ 
-                    color: template.colors?.text || '#1f2937',
-                    fontFamily: template.fonts?.body || 'Inter'
-                  }}
-                >
-                  {template.hero.subtitle}
-                </h2>
-              )}
-              
-              {template.hero?.description && (
-                <p 
-                  className="text-lg mb-8 max-w-2xl mx-auto"
-                  style={{ 
-                    color: template.colors?.text || '#1f2937',
-                    fontFamily: template.fonts?.body || 'Inter'
-                  }}
-                >
-                  {template.hero.description}
-                </p>
-              )}
-              
-              <button
-                className="px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105"
-                style={{
-                  backgroundColor: template.colors?.accent || '#fbbf24',
-                  color: template.colors?.text || '#1f2937'
-                }}
-              >
-                {template.hero?.cta_text || 'Comenzar Ahora'}
-              </button>
+        <div className="bg-gray-100">
+          <div className="max-h-[600px] overflow-y-auto border-4 border-gray-300 rounded-lg m-4">
+            <div className="transform scale-75 origin-top-left" style={{ width: '133.33%' }}>
+              <LandingRenderer content={template} />
             </div>
           </div>
         </div>

@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { 
-  ChevronDown, 
   Play, 
   Star, 
   Check, 
@@ -215,8 +214,58 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const colors = content.colors || {};
+  // Configuración de personalización
+  const colors = content.colors || {
+    primary: '#3b82f6',
+    secondary: '#1e40af',
+    accent: '#fbbf24',
+    background: '#ffffff',
+    text: '#1f2937'
+  };
+  
+  const fonts = content.fonts || {
+    heading: 'Inter',
+    body: 'Inter'
+  };
+  
   const animations = content.animations || {};
+
+  // Aplicar estilos dinámicos
+  useEffect(() => {
+    // Aplicar variables CSS para colores
+    const root = document.documentElement;
+    root.style.setProperty('--color-primary', colors.primary);
+    root.style.setProperty('--color-secondary', colors.secondary);
+    root.style.setProperty('--color-accent', colors.accent);
+    root.style.setProperty('--color-background', colors.background);
+    root.style.setProperty('--color-text', colors.text);
+    
+    // Cargar fuentes de Google Fonts si no son del sistema
+    const loadGoogleFont = (fontName: string) => {
+      if (!['Inter', 'Arial', 'Helvetica', 'sans-serif', 'serif', 'monospace'].includes(fontName)) {
+        const fontUrl = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}&display=swap`;
+        if (!document.querySelector(`link[href="${fontUrl}"]`)) {
+          const link = document.createElement('link');
+          link.href = fontUrl;
+          link.rel = 'stylesheet';
+          document.head.appendChild(link);
+        }
+      }
+    };
+    
+    loadGoogleFont(fonts.heading);
+    if (fonts.body !== fonts.heading) {
+      loadGoogleFont(fonts.body);
+    }
+    
+    // Aplicar fuentes al documento
+    root.style.setProperty('--font-heading', fonts.heading);
+    root.style.setProperty('--font-body', fonts.body);
+    
+    return () => {
+      // Cleanup no necesario para este caso
+    };
+  }, [colors, fonts]);
 
   const getIcon = (iconName: string, size: string = 'h-6 w-6') => {
     const icons: Record<string, any> = {
@@ -293,7 +342,10 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
         
         <div className="relative z-10 max-w-6xl mx-auto text-center text-white">
           <AnimatedSection animation={animations.hero?.type} delay={animations.hero?.delay}>
-            <h1 className="text-5xl md:text-7xl font-extrabold mb-6">
+            <h1 
+              className="text-5xl md:text-7xl font-extrabold mb-6"
+              style={{ fontFamily: fonts.heading }}
+            >
               {hero.title}
               {animations.typing_effect?.enabled && (
                 <div className="mt-4">
@@ -306,13 +358,19 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
             </h1>
             
             {hero.subtitle && (
-              <h2 className="text-2xl md:text-3xl mb-6 opacity-90">
+              <h2 
+                className="text-2xl md:text-3xl mb-6 opacity-90"
+                style={{ fontFamily: fonts.heading }}
+              >
                 {hero.subtitle}
               </h2>
             )}
             
             {hero.description && (
-              <p className="text-xl mb-8 max-w-3xl mx-auto opacity-80">
+              <p 
+                className="text-xl mb-8 max-w-3xl mx-auto opacity-80"
+                style={{ fontFamily: fonts.body }}
+              >
                 {hero.description}
               </p>
             )}
@@ -322,8 +380,9 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
                 href="#form"
                 className="inline-flex items-center px-8 py-4 text-lg font-semibold rounded-lg transition-all hover:scale-105"
                 style={{
-                  backgroundColor: colors.accent || '#fbbf24',
-                  color: colors.text || '#1f2937'
+                  backgroundColor: colors.accent,
+                  color: '#ffffff',
+                  fontFamily: fonts.body
                 }}
               >
                 {hero.cta_text || 'Comenzar Ahora'}
@@ -360,11 +419,20 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <AnimatedSection>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6" style={{ color: colors.text }}>
+              <h2 
+                className="text-4xl md:text-5xl font-bold mb-6" 
+                style={{ 
+                  color: colors.text,
+                  fontFamily: fonts.heading
+                }}
+              >
                 {features.title}
               </h2>
               {features.subtitle && (
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                <p 
+                  className="text-xl text-gray-600 max-w-3xl mx-auto"
+                  style={{ fontFamily: fonts.body }}
+                >
                   {features.subtitle}
                 </p>
               )}
@@ -375,7 +443,7 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
             {features.items?.map((feature: any, index: number) => (
               <AnimatedSection
                 key={index}
-                animation={feature.animation || 'fadeInUp'}
+                animation={feature.animation || animations.features?.type || 'fadeInUp'}
                 delay={index * 0.2}
               >
                 <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
@@ -399,12 +467,21 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
                         {getIcon(feature.icon, 'h-6 w-6')}
                       </div>
                     </div>
-                    <h3 className="text-xl font-bold" style={{ color: colors.text }}>
+                    <h3 
+                      className="text-xl font-bold" 
+                      style={{ 
+                        color: colors.text,
+                        fontFamily: fonts.heading
+                      }}
+                    >
                       {feature.title}
                     </h3>
                   </div>
                   
-                  <p className="text-gray-600 leading-relaxed">
+                  <p 
+                    className="text-gray-600 leading-relaxed"
+                    style={{ fontFamily: fonts.body }}
+                  >
                     {feature.description}
                   </p>
                 </div>
@@ -527,11 +604,17 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
       <section id="form" className="py-20 px-4" style={{ backgroundColor: colors.primary }}>
         <div className="max-w-2xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+            <h2 
+              className="text-4xl md:text-5xl font-bold mb-6 text-white"
+              style={{ fontFamily: fonts.heading }}
+            >
               {form.title || 'Contáctanos'}
             </h2>
             {form.subtitle && (
-              <p className="text-xl text-white opacity-90">
+              <p 
+                className="text-xl text-white opacity-90"
+                style={{ fontFamily: fonts.body }}
+              >
                 {form.subtitle}
               </p>
             )}
@@ -542,7 +625,13 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
               <div className="grid gap-6">
                 {form.fields?.map((field: any, index: number) => (
                   <div key={index}>
-                    <label className="block text-sm font-medium mb-2" style={{ color: colors.text }}>
+                    <label 
+                      className="block text-sm font-medium mb-2" 
+                      style={{ 
+                        color: colors.text,
+                        fontFamily: fonts.body
+                      }}
+                    >
                       {field.label}
                       {field.required && <span className="text-red-500 ml-1">*</span>}
                     </label>
@@ -579,8 +668,9 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
                 disabled={isSubmitting}
                 className="w-full mt-8 py-4 px-6 rounded-lg font-semibold text-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
-                  backgroundColor: colors.accent || '#fbbf24',
-                  color: colors.text || '#1f2937'
+                  backgroundColor: colors.accent,
+                  color: '#ffffff',
+                  fontFamily: fonts.body
                 }}
               >
                 {isSubmitting ? 'Enviando...' : (form.cta_text || 'Enviar')}
@@ -852,13 +942,27 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
   };
 
   return (
-    <div className="min-h-screen" style={{ fontFamily: content.fonts?.body || 'Inter, sans-serif' }}>
+    <div className="min-h-screen" style={{ fontFamily: fonts.body }}>
       {/* CSS para fuentes personalizadas */}
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Lato:wght@300;400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Lato:wght@300;400;700;900&family=Montserrat:wght@400;500;600;700;800;900&family=Roboto:wght@400;500;700;900&family=Poppins:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600;700;800&family=Source+Sans+Pro:wght@400;600;700;900&family=Nunito:wght@400;500;600;700;800;900&display=swap');
+        
+        :root {
+          --color-primary: ${colors.primary};
+          --color-secondary: ${colors.secondary};
+          --color-accent: ${colors.accent};
+          --color-background: ${colors.background};
+          --color-text: ${colors.text};
+          --font-heading: ${fonts.heading};
+          --font-body: ${fonts.body};
+        }
         
         h1, h2, h3, h4, h5, h6 {
-          font-family: ${content.fonts?.heading || 'Inter'}, sans-serif;
+          font-family: ${fonts.heading}, sans-serif !important;
+        }
+        
+        p, span, div, input, textarea, button {
+          font-family: ${fonts.body}, sans-serif !important;
         }
       `}</style>
 
