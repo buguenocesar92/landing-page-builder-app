@@ -106,4 +106,141 @@ export interface LandingAnalytics {
     date: string;
     count: number;
   }[];
+}
+
+export interface AdvancedAnalytics {
+  // Métricas básicas
+  views: number;
+  unique_visitors: number;
+  leads: number;
+  conversion_rate: number;
+  
+  // Métricas temporales
+  views_by_hour: Array<{ hour: string; views: number }>;
+  views_by_day: Array<{ date: string; views: number; leads: number }>;
+  views_by_device: { desktop: number; mobile: number; tablet: number };
+  
+  // Geolocalización
+  visitors_by_country: Array<{ country: string; visitors: number }>;
+  visitors_by_city: Array<{ city: string; visitors: number }>;
+  
+  // Fuentes de tráfico
+  traffic_sources: {
+    direct: number;
+    social: number;
+    search: number;
+    referral: number;
+    email: number;
+    ads: number;
+  };
+  
+  // Comportamiento
+  avg_time_on_page: number;
+  bounce_rate: number;
+  scroll_depth: number;
+  form_abandonment_rate: number;
+  
+  // Heatmaps
+  click_heatmap: Array<{ x: number; y: number; clicks: number }>;
+  scroll_heatmap: Array<{ position: number; users: number }>;
+} 
+
+export interface SEOConfig {
+  title: string;
+  description: string;
+  keywords: string[];
+  og_title?: string;
+  og_description?: string;
+  og_image?: string;
+  twitter_card?: 'summary' | 'summary_large_image';
+  canonical_url?: string;
+  robots?: 'index,follow' | 'noindex,nofollow';
+  structured_data?: Record<string, any>;
+}
+
+export interface PerformanceSettings {
+  lazy_loading: boolean;
+  image_optimization: boolean;
+  css_minification: boolean;
+  js_minification: boolean;
+  caching_enabled: boolean;
+  cdn_enabled: boolean;
+} 
+
+export interface NotificationConfig {
+  email_notifications: {
+    new_lead: boolean;
+    daily_summary: boolean;
+    weekly_report: boolean;
+    conversion_milestones: boolean;
+  };
+  
+  slack_webhook?: string;
+  discord_webhook?: string;
+  
+  sms_notifications: {
+    enabled: boolean;
+    phone_number?: string;
+    high_value_leads_only: boolean;
+  };
+  
+  push_notifications: {
+    enabled: boolean;
+    immediate_leads: boolean;
+    daily_summary: boolean;
+  };
+}
+
+export interface Alert {
+  id: number;
+  type: 'info' | 'warning' | 'success' | 'error';
+  title: string;
+  message: string;
+  action_url?: string;
+  read: boolean;
+  created_at: string;
+} 
+
+export interface Plan {
+  id: string;
+  name: string;
+  price_monthly: number;
+  price_yearly: number;
+  features: PlanFeatures;
+  limits: PlanLimits;
+  popular?: boolean;
+}
+
+export interface PlanFeatures {
+  landing_pages: number | 'unlimited';
+  monthly_views: number | 'unlimited';
+  leads_storage: number | 'unlimited';
+  custom_domains: number;
+  templates_access: 'free' | 'premium' | 'all';
+  ab_testing: boolean;
+  analytics_advanced: boolean;
+  integrations: string[];
+  support: 'community' | 'email' | 'priority';
+  white_label: boolean;
+  team_members: number;
+}
+
+export interface PlanLimits {
+  current_usage: {
+    landing_pages: number;
+    monthly_views: number;
+    leads_count: number;
+    custom_domains: number;
+  };
+  limits: PlanFeatures;
+}
+
+export interface Subscription {
+  id: number;
+  user_id: number;
+  plan_id: string;
+  status: 'active' | 'cancelled' | 'expired' | 'past_due';
+  current_period_start: string;
+  current_period_end: string;
+  stripe_subscription_id?: string;
 } 
