@@ -308,17 +308,19 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
     let backgroundStyle: React.CSSProperties = {};
     
     if (background.type === 'gradient') {
-      backgroundStyle.background = `linear-gradient(${background.direction || '45deg'}, ${background.colors?.join(', ') || '#667eea, #764ba2'})`;
+      // Usar colores del template en lugar de colores fijos
+      const gradientColors = background.colors || [colors.primary, colors.secondary];
+      backgroundStyle.background = `linear-gradient(${background.direction || '135deg'}, ${gradientColors.join(', ')})`;
     } else if (background.type === 'image') {
       backgroundStyle.backgroundImage = `url(${background.url})`;
       backgroundStyle.backgroundSize = 'cover';
       backgroundStyle.backgroundPosition = 'center';
     } else if (background.type === 'particle_animation') {
-      // Fallback to dark gradient for particle animation
-      backgroundStyle.background = `linear-gradient(135deg, #1f2937, #111827)`;
+      // Usar colores del template para particle animation
+      backgroundStyle.background = `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`;
     } else {
-      // Default dark background
-      backgroundStyle.backgroundColor = '#1f2937';
+      // Default: usar gradient con colores del template
+      backgroundStyle.background = `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`;
     }
 
     return (
@@ -329,11 +331,11 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
         {/* Particle animation simulation with CSS */}
         {background.type === 'particle_animation' && (
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute animate-pulse bg-blue-500 w-2 h-2 rounded-full opacity-30" style={{ top: '20%', left: '10%', animationDelay: '0s' }}></div>
-            <div className="absolute animate-pulse bg-blue-400 w-1 h-1 rounded-full opacity-40" style={{ top: '60%', left: '80%', animationDelay: '1s' }}></div>
-            <div className="absolute animate-pulse bg-blue-300 w-3 h-3 rounded-full opacity-20" style={{ top: '40%', left: '60%', animationDelay: '2s' }}></div>
-            <div className="absolute animate-pulse bg-blue-500 w-1 h-1 rounded-full opacity-50" style={{ top: '80%', left: '20%', animationDelay: '1.5s' }}></div>
-            <div className="absolute animate-pulse bg-blue-400 w-2 h-2 rounded-full opacity-30" style={{ top: '30%', left: '90%', animationDelay: '0.5s' }}></div>
+            <div className="absolute animate-pulse w-2 h-2 rounded-full opacity-30" style={{ top: '20%', left: '10%', animationDelay: '0s', backgroundColor: colors.accent }}></div>
+            <div className="absolute animate-pulse w-1 h-1 rounded-full opacity-40" style={{ top: '60%', left: '80%', animationDelay: '1s', backgroundColor: colors.accent }}></div>
+            <div className="absolute animate-pulse w-3 h-3 rounded-full opacity-20" style={{ top: '40%', left: '60%', animationDelay: '2s', backgroundColor: colors.accent }}></div>
+            <div className="absolute animate-pulse w-1 h-1 rounded-full opacity-50" style={{ top: '80%', left: '20%', animationDelay: '1.5s', backgroundColor: colors.accent }}></div>
+            <div className="absolute animate-pulse w-2 h-2 rounded-full opacity-30" style={{ top: '30%', left: '90%', animationDelay: '0.5s', backgroundColor: colors.accent }}></div>
           </div>
         )}
 

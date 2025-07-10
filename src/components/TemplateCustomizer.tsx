@@ -554,30 +554,246 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
             <div className="flex space-x-3">
               <button
                 onClick={() => {
-                  // Abrir vista previa en modal o nueva pestaña
-                  const previewWindow = window.open('', '_blank');
+                  // Crear una vista previa completa con todas las secciones
+                  const previewWindow = window.open('', '_blank', 'width=1200,height=800');
                   if (previewWindow) {
-                    previewWindow.document.write(`
+                    const htmlContent = `
                       <!DOCTYPE html>
                       <html>
                         <head>
                           <title>Vista Previa - Template</title>
+                          <meta charset="UTF-8">
+                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
                           <script src="https://cdn.tailwindcss.com"></script>
+                          <link href="https://fonts.googleapis.com/css2?family=${template.fonts?.heading?.replace(' ', '+')}:wght@400;500;600;700;800;900&family=${template.fonts?.body?.replace(' ', '+')}:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
                           <style>
-                            body { margin: 0; padding: 0; font-family: ${template.fonts?.body || 'Inter'}, sans-serif; }
-                            h1, h2, h3, h4, h5, h6 { font-family: ${template.fonts?.heading || 'Inter'}, sans-serif; }
+                            body { 
+                              margin: 0; 
+                              padding: 0; 
+                              font-family: '${template.fonts?.body || 'Inter'}', sans-serif; 
+                              line-height: 1.6;
+                            }
+                            h1, h2, h3, h4, h5, h6 { 
+                              font-family: '${template.fonts?.heading || 'Inter'}', sans-serif; 
+                              margin: 0;
+                            }
+                            .primary-color { color: ${template.colors?.primary || '#3b82f6'}; }
+                            .secondary-color { color: ${template.colors?.secondary || '#1e40af'}; }
+                            .accent-color { color: ${template.colors?.accent || '#fbbf24'}; }
+                            .text-color { color: ${template.colors?.text || '#1f2937'}; }
+                            .bg-primary { background-color: ${template.colors?.primary || '#3b82f6'}; }
+                            .bg-secondary { background-color: ${template.colors?.secondary || '#1e40af'}; }
+                            .bg-accent { background-color: ${template.colors?.accent || '#fbbf24'}; }
+                            .bg-background { background-color: ${template.colors?.background || '#ffffff'}; }
                           </style>
                         </head>
                         <body>
-                          <div id="preview-container"></div>
+                          <!-- Hero Section -->
+                          <section class="min-h-screen flex items-center justify-center px-4" style="background: linear-gradient(135deg, ${template.colors?.primary || '#3b82f6'}, ${template.colors?.secondary || '#1e40af'});">
+                            <div class="text-center text-white max-w-6xl mx-auto">
+                              <h1 class="text-5xl md:text-7xl font-extrabold mb-6">
+                                ${template.hero?.title || 'Tu Título Aquí'}
+                              </h1>
+                              <h2 class="text-2xl md:text-3xl mb-6 opacity-90">
+                                ${template.hero?.subtitle || 'Subtítulo explicativo'}
+                              </h2>
+                              <p class="text-xl mb-8 max-w-3xl mx-auto opacity-80">
+                                ${template.hero?.description || 'Descripción detallada de tu propuesta de valor'}
+                              </p>
+                              <button class="inline-flex items-center px-8 py-4 text-lg font-semibold rounded-lg transition-all hover:scale-105" style="background-color: ${template.colors?.accent || '#fbbf24'}; color: white;">
+                                ${template.hero?.cta_text || 'Comenzar Ahora'}
+                              </button>
+                            </div>
+                          </section>
+
+                          <!-- Features Section -->
+                          <section class="py-20 px-4" style="background-color: ${template.colors?.background || '#ffffff'};">
+                            <div class="max-w-6xl mx-auto">
+                              <div class="text-center mb-16">
+                                <h2 class="text-4xl md:text-5xl font-bold mb-6 text-color">
+                                  ${template.features?.title || 'Características Destacadas'}
+                                </h2>
+                                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                                  ${template.features?.subtitle || 'Todo lo que necesitas para hacer crecer tu negocio'}
+                                </p>
+                              </div>
+                              <div class="grid md:grid-cols-3 gap-8">
+                                ${template.features?.items?.map((feature, index) => `
+                                  <div class="bg-white rounded-xl p-8 shadow-lg">
+                                    <div class="flex items-center mb-4">
+                                      <div class="p-3 rounded-lg mr-4" style="background-color: ${template.colors?.primary}20;">
+                                        <div class="w-6 h-6 primary-color">⚡</div>
+                                      </div>
+                                      <h3 class="text-xl font-bold text-color">${feature.title}</h3>
+                                    </div>
+                                    <p class="text-gray-600">${feature.description}</p>
+                                  </div>
+                                `).join('') || '<div class="text-center text-gray-500">No hay características definidas</div>'}
+                              </div>
+                            </div>
+                          </section>
+
+                          <!-- Stats Section -->
+                          <section class="py-20 px-4 bg-gray-50">
+                            <div class="max-w-6xl mx-auto">
+                              <div class="text-center mb-16">
+                                <h2 class="text-4xl md:text-5xl font-bold mb-6 text-color">
+                                  ${template.stats?.title || 'Números que Hablan'}
+                                </h2>
+                              </div>
+                              <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                                ${template.stats?.items?.map((stat, index) => `
+                                  <div class="text-center">
+                                    <div class="text-4xl font-bold primary-color mb-2">
+                                      ${stat.value}${stat.suffix || ''}
+                                    </div>
+                                    <p class="text-gray-600">${stat.label}</p>
+                                  </div>
+                                `).join('') || '<div class="text-center text-gray-500">No hay estadísticas definidas</div>'}
+                              </div>
+                            </div>
+                          </section>
+
+                          <!-- Testimonials Section -->
+                          <section class="py-20 px-4" style="background-color: ${template.colors?.background || '#ffffff'};">
+                            <div class="max-w-6xl mx-auto">
+                              <div class="text-center mb-16">
+                                <h2 class="text-4xl md:text-5xl font-bold mb-6 text-color">
+                                  ${template.testimonials?.title || 'Lo que Dicen Nuestros Clientes'}
+                                </h2>
+                              </div>
+                              <div class="grid md:grid-cols-2 gap-8">
+                                ${template.testimonials?.items?.map((testimonial, index) => `
+                                  <div class="bg-white rounded-xl p-8 shadow-lg">
+                                    <div class="flex items-center mb-4">
+                                      <div class="w-12 h-12 rounded-full bg-gray-300 mr-4"></div>
+                                      <div>
+                                        <h4 class="font-bold text-color">${testimonial.name}</h4>
+                                        <p class="text-sm text-gray-600">${testimonial.role}</p>
+                                      </div>
+                                    </div>
+                                    <p class="text-gray-600">"${testimonial.comment}"</p>
+                                    <div class="flex text-yellow-400 mt-4">
+                                      ${'★'.repeat(testimonial.rating || 5)}
+                                    </div>
+                                  </div>
+                                `).join('') || '<div class="text-center text-gray-500">No hay testimoniales definidos</div>'}
+                              </div>
+                            </div>
+                          </section>
+
+                          <!-- Pricing Section -->
+                          <section class="py-20 px-4 bg-gray-50">
+                            <div class="max-w-6xl mx-auto">
+                              <div class="text-center mb-16">
+                                <h2 class="text-4xl md:text-5xl font-bold mb-6 text-color">
+                                  ${template.pricing?.title || 'Planes Flexibles'}
+                                </h2>
+                                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                                  ${template.pricing?.subtitle || 'Elige el plan perfecto para tu negocio'}
+                                </p>
+                              </div>
+                              <div class="grid md:grid-cols-3 gap-8">
+                                ${template.pricing?.plans?.map((plan, index) => `
+                                  <div class="bg-white rounded-2xl p-8 shadow-lg ${plan.popular ? 'ring-2 ring-blue-500 scale-105' : ''}">
+                                    ${plan.popular ? '<div class="text-center mb-4"><span class="bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-semibold">Más Popular</span></div>' : ''}
+                                    <div class="text-center mb-8">
+                                      <h3 class="text-2xl font-bold mb-4 text-color">${plan.name}</h3>
+                                      <div class="mb-4">
+                                        <span class="text-5xl font-bold primary-color">$${plan.price}</span>
+                                        <span class="text-gray-600">/${plan.period}</span>
+                                      </div>
+                                    </div>
+                                    <ul class="space-y-4 mb-8">
+                                      ${plan.features?.map(feature => `
+                                        <li class="flex items-start">
+                                          <span class="text-green-500 mr-3">✓</span>
+                                          <span class="text-gray-700">${feature}</span>
+                                        </li>
+                                      `).join('') || ''}
+                                    </ul>
+                                    <button class="w-full py-3 px-6 rounded-lg font-semibold ${plan.popular ? 'text-white' : 'border-2'}" style="background-color: ${plan.popular ? template.colors?.primary : 'transparent'}; border-color: ${template.colors?.primary}; color: ${plan.popular ? 'white' : template.colors?.primary};">
+                                      ${plan.cta_text}
+                                    </button>
+                                  </div>
+                                `).join('') || '<div class="text-center text-gray-500">No hay planes definidos</div>'}
+                              </div>
+                            </div>
+                          </section>
+
+                          <!-- Form Section -->
+                          <section class="py-20 px-4" style="background-color: ${template.colors?.primary || '#3b82f6'};">
+                            <div class="max-w-2xl mx-auto">
+                              <div class="text-center mb-12">
+                                <h2 class="text-4xl md:text-5xl font-bold mb-6 text-white">
+                                  ${template.form?.title || 'Comienza Tu Transformación Digital'}
+                                </h2>
+                                <p class="text-xl text-white opacity-90">
+                                  ${template.form?.subtitle || '¡Únete a miles de empresas que ya automatizaron su éxito!'}
+                                </p>
+                              </div>
+                              <div class="bg-white rounded-xl p-8 shadow-2xl">
+                                <div class="grid gap-6">
+                                  ${template.form?.fields?.map(field => `
+                                    <div>
+                                      <label class="block text-sm font-medium mb-2 text-color">
+                                        ${field.label} ${field.required ? '<span class="text-red-500">*</span>' : ''}
+                                      </label>
+                                      ${field.type === 'textarea' ? 
+                                        `<textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="4" placeholder="${field.label}"></textarea>` :
+                                        `<input type="${field.type}" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="${field.label}">`
+                                      }
+                                    </div>
+                                  `).join('') || '<div class="text-center text-gray-500">No hay campos definidos</div>'}
+                                </div>
+                                <button class="w-full mt-8 py-4 px-6 rounded-lg font-semibold text-lg text-white" style="background-color: ${template.colors?.accent || '#fbbf24'};">
+                                  ${template.form?.cta_text || 'Comenzar Ahora'}
+                                </button>
+                                ${template.form?.privacy_text ? `<p class="text-sm text-gray-600 mt-4 text-center">${template.form.privacy_text}</p>` : ''}
+                              </div>
+                            </div>
+                          </section>
+
+                          <!-- Social Proof Section -->
+                          ${template.social_proof ? `
+                          <section class="py-16 px-4 bg-gray-50">
+                            <div class="max-w-6xl mx-auto text-center">
+                              <h3 class="text-lg font-medium text-gray-600 mb-8">
+                                ${template.social_proof.title}
+                              </h3>
+                              <div class="flex justify-center items-center space-x-8 opacity-60">
+                                ${template.social_proof.logos?.map(logo => `
+                                  <div class="relative h-12 w-32 bg-gray-200 rounded"></div>
+                                `).join('') || ''}
+                              </div>
+                            </div>
+                          </section>
+                          ` : ''}
+
                           <script>
-                            // Aquí se renderizaría el template
-                            document.getElementById('preview-container').innerHTML = 
-                              '<div style="min-height: 100vh; background: linear-gradient(135deg, ${template.colors?.primary || '#3b82f6'}, ${template.colors?.secondary || '#1e40af'}); display: flex; align-items: center; justify-content: center; text-align: center; color: white; padding: 2rem;"><div><h1 style="font-size: 3rem; margin-bottom: 1rem;">${template.hero?.title || 'Tu Título Aquí'}</h1><p style="font-size: 1.2rem; margin-bottom: 2rem;">${template.hero?.description || 'Descripción'}</p><button style="background: ${template.colors?.accent || '#fbbf24'}; color: white; padding: 1rem 2rem; border: none; border-radius: 0.5rem; font-size: 1.1rem; cursor: pointer;">${template.hero?.cta_text || 'Comenzar Ahora'}</button></div></div>';
+                            // Agregar interactividad básica
+                            document.querySelectorAll('button').forEach(button => {
+                              button.addEventListener('click', function() {
+                                alert('Esta es una vista previa. Los botones no son funcionales.');
+                              });
+                            });
+
+                            // Efectos de hover
+                            document.querySelectorAll('.shadow-lg').forEach(element => {
+                              element.addEventListener('mouseenter', function() {
+                                this.style.transform = 'translateY(-4px)';
+                                this.style.transition = 'transform 0.3s ease';
+                              });
+                              element.addEventListener('mouseleave', function() {
+                                this.style.transform = 'translateY(0)';
+                              });
+                            });
                           </script>
                         </body>
                       </html>
-                    `);
+                    `;
+                    
+                    previewWindow.document.write(htmlContent);
                     previewWindow.document.close();
                   }
                 }}
