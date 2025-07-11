@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Eye, Download, Palette, Type, Image, Zap, TrendingUp, RefreshCw } from 'lucide-react';
+import { Eye, Download, Palette, Type, Image, Zap, TrendingUp, RefreshCw, ShoppingCart, Plus, Edit, Trash2, Move, DollarSign } from 'lucide-react';
 
 interface TemplateCustomizerProps {
   initialTemplate: any;
@@ -1188,11 +1188,350 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
     </div>
   );
 
+  const renderProductsTab = () => {
+    // Obtener productos actuales del template
+    const products = template.product_showcase || template.products || {
+      title: 'Nuestros Productos',
+      subtitle: 'Descubre nuestra increíble selección',
+      items: []
+    };
+
+    // Función para agregar un nuevo producto
+    const addNewProduct = () => {
+      const newProduct = {
+        id: Date.now(), // ID único basado en timestamp
+        name: 'Nuevo Producto',
+        price: 99,
+        currency: 'USD',
+        description: 'Descripción del producto...',
+        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
+        category: 'General',
+        stock: 'Disponible',
+        cta_button: 'Lo Quiero',
+        features: ['Calidad premium', 'Garantía incluida', 'Envío gratis']
+      };
+
+      const updatedProducts = {
+        ...products,
+        items: [...(products.items || []), newProduct]
+      };
+
+      updateTemplate('product_showcase', updatedProducts);
+    };
+
+    // Función para eliminar un producto
+    const removeProduct = (index: number) => {
+      const updatedProducts = {
+        ...products,
+        items: products.items.filter((_: any, i: number) => i !== index)
+      };
+      updateTemplate('product_showcase', updatedProducts);
+    };
+
+    // Función para mover productos (reordenar)
+    const moveProduct = (fromIndex: number, toIndex: number) => {
+      const items = [...products.items];
+      const [movedItem] = items.splice(fromIndex, 1);
+      items.splice(toIndex, 0, movedItem);
+
+      const updatedProducts = {
+        ...products,
+        items
+      };
+      updateTemplate('product_showcase', updatedProducts);
+    };
+
+    return (
+      <div className="space-y-6">
+        {/* Header de la sección productos */}
+        <div className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-purple-50">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold flex items-center">
+              <ShoppingCart className="w-5 h-5 mr-2 text-blue-600" />
+              Editor de Productos
+            </h3>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">
+                {products.items?.length || 0} productos
+              </span>
+              <button
+                onClick={addNewProduct}
+                className="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Agregar Producto
+              </button>
+            </div>
+          </div>
+
+          {/* Configuración general de la sección */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Título de la Sección</label>
+              <input
+                type="text"
+                value={products.title || ''}
+                onChange={(e) => updateTemplate('product_showcase.title', e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="Nuestros Productos"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Subtítulo</label>
+              <input
+                type="text"
+                value={products.subtitle || ''}
+                onChange={(e) => updateTemplate('product_showcase.subtitle', e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="Descubre nuestra increíble selección"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Lista de productos */}
+        <div className="space-y-4">
+          {products.items?.map((product: any, index: number) => (
+            <div key={product.id || index} className="border rounded-lg p-4 bg-white shadow-sm">
+              {/* Header del producto con controles */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="flex flex-col space-y-1">
+                    <button
+                      onClick={() => index > 0 && moveProduct(index, index - 1)}
+                      disabled={index === 0}
+                      className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                      title="Mover arriba"
+                    >
+                      <Move className="w-3 h-3 rotate-180" />
+                    </button>
+                    <button
+                      onClick={() => index < products.items.length - 1 && moveProduct(index, index + 1)}
+                      disabled={index === products.items.length - 1}
+                      className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                      title="Mover abajo"
+                    >
+                      <Move className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
+                  <h4 className="font-semibold text-gray-900">{product.name}</h4>
+                </div>
+                <button
+                  onClick={() => removeProduct(index)}
+                  className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                  title="Eliminar producto"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Formulario del producto */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Información básica */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Nombre del Producto</label>
+                    <input
+                      type="text"
+                      value={product.name || ''}
+                      onChange={(e) => updateTemplate(`product_showcase.items.${index}.name`, e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                      placeholder="Nombre del producto"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Precio</label>
+                      <input
+                        type="number"
+                        value={product.price || ''}
+                        onChange={(e) => updateTemplate(`product_showcase.items.${index}.price`, parseFloat(e.target.value) || 0)}
+                        className="w-full px-3 py-2 border rounded-md text-sm"
+                        placeholder="99"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Moneda</label>
+                      <select
+                        value={product.currency || 'USD'}
+                        onChange={(e) => updateTemplate(`product_showcase.items.${index}.currency`, e.target.value)}
+                        className="w-full px-3 py-2 border rounded-md text-sm"
+                      >
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="MXN">MXN</option>
+                        <option value="COP">COP</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Categoría</label>
+                    <input
+                      type="text"
+                      value={product.category || ''}
+                      onChange={(e) => updateTemplate(`product_showcase.items.${index}.category`, e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                      placeholder="Categoría"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Stock/Estado</label>
+                    <select
+                      value={product.stock || 'Disponible'}
+                      onChange={(e) => updateTemplate(`product_showcase.items.${index}.stock`, e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                    >
+                      <option value="Disponible">✅ Disponible</option>
+                      <option value="Pocas Unidades">⚠️ Pocas Unidades</option>
+                      <option value="Agotado">❌ Agotado</option>
+                      <option value="Edición Limitada">⭐ Edición Limitada</option>
+                      <option value="Preventa">🚀 Preventa</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Descripción y características */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Descripción</label>
+                    <textarea
+                      value={product.description || ''}
+                      onChange={(e) => updateTemplate(`product_showcase.items.${index}.description`, e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                      rows={4}
+                      placeholder="Descripción detallada del producto..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Botón de Acción</label>
+                    <input
+                      type="text"
+                      value={product.cta_button || ''}
+                      onChange={(e) => updateTemplate(`product_showcase.items.${index}.cta_button`, e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                      placeholder="Lo Quiero"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Características (separadas por coma)</label>
+                    <textarea
+                      value={product.features?.join(', ') || ''}
+                      onChange={(e) => updateTemplate(`product_showcase.items.${index}.features`, e.target.value.split(',').map((f: string) => f.trim()))}
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                      rows={2}
+                      placeholder="Característica 1, Característica 2, Característica 3"
+                    />
+                  </div>
+                </div>
+
+                {/* Imagen y vista previa */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">URL de la Imagen</label>
+                    <input
+                      type="url"
+                      value={product.image || ''}
+                      onChange={(e) => updateTemplate(`product_showcase.items.${index}.image`, e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                      placeholder="https://images.unsplash.com/..."
+                    />
+                  </div>
+
+                  {/* Vista previa de la imagen */}
+                  {product.image && (
+                    <div className="relative">
+                      <label className="block text-xs font-medium mb-1">Vista Previa</label>
+                      <div className="relative h-32 bg-gray-100 rounded-md overflow-hidden">
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                          <span className="text-white text-xs font-medium">Vista Previa</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tarjeta de vista previa del producto */}
+                  <div className="border rounded-lg p-3 bg-gray-50">
+                    <div className="text-xs font-medium text-gray-600 mb-2">Vista Previa del Producto:</div>
+                    <div className="space-y-2">
+                      <div className="font-semibold text-sm">{product.name}</div>
+                      <div className="text-xs text-gray-600">{product.category}</div>
+                      <div className="text-sm font-bold text-blue-600">
+                        ${product.price} {product.currency}
+                      </div>
+                      <div className="text-xs text-gray-700 line-clamp-2">
+                        {product.description}
+                      </div>
+                      <div className="text-xs">
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                          product.stock === 'Disponible' ? 'bg-green-100 text-green-800' :
+                          product.stock === 'Pocas Unidades' ? 'bg-yellow-100 text-yellow-800' :
+                          product.stock === 'Agotado' ? 'bg-red-100 text-red-800' :
+                          'bg-blue-100 text-blue-800'
+                        }`}>
+                          {product.stock}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Mensaje cuando no hay productos */}
+          {(!products.items || products.items.length === 0) && (
+            <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+              <ShoppingCart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No hay productos</h3>
+              <p className="text-gray-600 mb-4">Comienza agregando tu primer producto</p>
+              <button
+                onClick={addNewProduct}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Agregar Primer Producto
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Consejos y ayuda */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="font-semibold text-blue-900 mb-2">💡 Consejos para Productos</h4>
+          <ul className="text-sm text-blue-800 space-y-1">
+            <li>• <strong>Imágenes:</strong> Usa URLs de Unsplash para mejores resultados (recomendado: 400x400px)</li>
+            <li>• <strong>Descripciones:</strong> Mantén las descripciones claras y concisas (máximo 2-3 líneas)</li>
+            <li>• <strong>Precios:</strong> Incluye la moneda local para mejor conversión</li>
+            <li>• <strong>Características:</strong> Máximo 3 características por producto para mejor legibilidad</li>
+            <li>• <strong>Orden:</strong> Usa las flechas para reordenar productos por importancia</li>
+          </ul>
+        </div>
+      </div>
+    );
+  };
+
   const tabs = [
     { id: 'colors', name: 'Colores', icon: Palette },
     { id: 'fonts', name: 'Fuentes', icon: Type },
     { id: 'animations', name: 'Animaciones', icon: Zap },
     { id: 'content', name: 'Contenido', icon: Image },
+    { id: 'products', name: 'Productos', icon: ShoppingCart },
   ];
 
   // Validación de datos para evitar errores
@@ -1611,6 +1950,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
             {activeTab === 'fonts' && renderFontsTab()}
             {activeTab === 'animations' && renderAnimationsTab()}
             {activeTab === 'content' && renderContentTab()}
+            {activeTab === 'products' && renderProductsTab()}
           </div>
         </div>
       </div>
