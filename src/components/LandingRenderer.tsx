@@ -814,62 +814,122 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
   };
 
   const renderProductShowcase = () => {
-    const products = content.product_showcase || {};
+    // Buscar productos en content.products (nuestro template) o content.product_showcase (otros templates)
+    const products = content.products || content.product_showcase || {};
     
-    if (!products.items) return null;
+    if (!products.items || !Array.isArray(products.items)) return null;
 
     return (
       <section className="py-20 px-4" style={{ backgroundColor: colors.background }}>
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <AnimatedSection>
               <h2 className="text-4xl md:text-5xl font-bold mb-6" style={{ color: colors.text }}>
-                {products.title}
+                {products.title || 'Nuestros Productos'}
               </h2>
+              {products.subtitle && (
+                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                  {products.subtitle}
+                </p>
+              )}
             </AnimatedSection>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12">
+          {/* Grid responsivo inteligente basado en cantidad de productos */}
+          <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 ${
+            products.items.length <= 3 ? 'lg:grid-cols-3' :
+            products.items.length <= 4 ? 'lg:grid-cols-2 xl:grid-cols-4' :
+            products.items.length <= 6 ? 'lg:grid-cols-3' :
+            products.items.length <= 9 ? 'lg:grid-cols-3 xl:grid-cols-4' :
+            'lg:grid-cols-4'
+          }`}>
             {products.items.map((product: any, index: number) => (
               <AnimatedSection
-                key={index}
-                delay={index * 0.3}
-                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
+                key={product.id || index}
+                delay={index * 0.1}
+                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2"
               >
-                <div className="relative h-80">
-                  {product.gallery && product.gallery.length > 1 ? (
-                    <ImageGallery images={product.gallery} alt={product.name} />
-                  ) : (
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                    />
+                {/* Imagen del producto */}
+                <div className="relative h-64 overflow-hidden">
+                  <Image
+                    src={product.image || product.images?.[0] || '/placeholder-product.jpg'}
+                    alt={product.name}
+                    fill
+                    className="object-cover transition-transform duration-300 hover:scale-110"
+                  />
+                  {product.stock && product.stock !== 'Disponible' && (
+                    <div className="absolute top-3 right-3">
+                      <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                        {product.stock}
+                      </span>
+                    </div>
                   )}
                 </div>
                 
-                <div className="p-8">
-                  <h3 className="text-2xl font-bold mb-3" style={{ color: colors.text }}>
+                {/* Información del producto */}
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-2" style={{ color: colors.text }}>
                     {product.name}
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  
+                  {product.category && (
+                    <p className="text-sm text-gray-500 mb-2">
+                      {product.category}
+                    </p>
+                  )}
+                  
+                  <p className="text-gray-600 mb-4 text-sm line-clamp-3">
                     {product.description}
                   </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-3xl font-bold" style={{ color: colors.primary }}>
-                      ${product.price} {product.currency}
+                  
+                  {/* Precio */}
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-2xl font-bold" style={{ color: colors.primary }}>
+                      ${product.price}
+                      {product.currency && product.currency !== 'USD' && (
+                        <span className="text-sm ml-1">{product.currency}</span>
+                      )}
                     </span>
-                    <button
-                      className="px-6 py-2 rounded-lg font-semibold transition-all hover:scale-105"
-                      style={{
-                        backgroundColor: colors.accent,
-                        color: colors.text
-                      }}
-                    >
-                      Ver Detalles
-                    </button>
                   </div>
+                  
+                  {/* Botón "Lo Quiero" */}
+                  <button
+                    className="w-full py-3 px-4 rounded-lg font-semibold transition-all hover:scale-105 hover:shadow-md"
+                    style={{
+                      backgroundColor: colors.accent,
+                      color: 'white'
+                    }}
+                    onClick={() => {
+                      // Scroll al formulario cuando hagan clic en "Lo Quiero"
+                      const formSection = document.querySelector('form');
+                      if (formSection) {
+                        formSection.scrollIntoView({ behavior: 'smooth' });
+                        // Opcional: rellenar el campo de mensaje con el producto seleccionado
+                        const messageField = document.querySelector('textarea[name="message"]') as HTMLTextAreaElement;
+                        if (messageField) {
+                          messageField.value = `Hola! Me interesa la ${product.name} de $${product.price}. ¿Podrían darme más información?`;
+                        }
+                      }
+                    }}
+                  >
+                    {product.cta_button || 'Lo Quiero'}
+                  </button>
+                  
+                  {/* Características del producto (si existen) */}
+                  {product.features && product.features.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <div className="flex flex-wrap gap-1">
+                        {product.features.slice(0, 3).map((feature: string, idx: number) => (
+                          <span 
+                            key={idx}
+                            className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"
+                          >
+                            {feature}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </AnimatedSection>
             ))}
