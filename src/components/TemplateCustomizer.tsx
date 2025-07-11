@@ -207,10 +207,21 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
     switch (previewMode) {
       case 'scaled':
         return {
-          container: { width: '100%', height: '800px', overflow: 'hidden', position: 'relative' as const },
-          iframe: { width: '1920px', height: '1080px', transform: 'scale(0.4)', transformOrigin: 'top left' },
+          container: { 
+            width: '100%', 
+            height: '700px', 
+            overflow: 'hidden', 
+            position: 'relative' as const,
+            border: '2px solid #e5e7eb',
+            borderRadius: '8px'
+          },
+          iframe: { 
+            width: '100%', 
+            height: '700px', 
+            border: 'none'
+          },
           title: '🖥️ Vista Desktop',
-          description: 'Vista completa de escritorio (1920x1080) escalada al 40%'
+          description: 'Vista desktop real - Sin scroll doble'
         };
       case 'tablet':
         return {
@@ -241,16 +252,13 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
       if (shouldSave && onSave) {
         await onSave(template, showSuccessMessage);
         // Esperamos un poco para que se guarden los cambios
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
       
-      // Refrescamos el iframe
+      // Refrescamos el iframe con timestamp para evitar caché
       const iframe = iframeRef.current;
-      const currentSrc = iframe.src;
-      iframe.src = '';
-      setTimeout(() => {
-        iframe.src = currentSrc;
-      }, 100);
+      const timestamp = new Date().getTime();
+      iframe.src = `/l/${landingSlug}?t=${timestamp}`;
       
     } catch (error) {
       console.error('Error al refrescar preview:', error);
@@ -300,12 +308,23 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
       if (hasChanges) {
         const timer = setTimeout(() => {
           refreshIframe(true, false); // Guardar automáticamente SIN mostrar mensaje
-        }, 1000); // Delay de 1 segundo después de cambios
+        }, 500); // Delay reducido a 500ms para respuesta más rápida
         
         return () => clearTimeout(timer);
       }
     }
   }, [template.colors?.primary, template.colors?.secondary, template.fonts?.heading, template.fonts?.body, isInitialized, initialValues]);
+
+  // Auto-refresh para cambios en contenido (títulos, textos, etc.)
+  React.useEffect(() => {
+    if (landingSlug && isInitialized) {
+      const timer = setTimeout(() => {
+        refreshIframe(true, false); // Guardar cambios de contenido
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [template.hero?.title, template.hero?.subtitle, template.hero?.description, template.features?.title, isInitialized]);
 
   const colorPresets = [
     { name: 'Tech Blue', primary: '#3b82f6', secondary: '#1e40af', accent: '#fbbf24' },
@@ -1501,14 +1520,15 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
         
         <div className="bg-gray-100 p-6">
           <div 
-            className={`bg-white ${previewMode === 'scaled' ? 'border-2 border-gray-300' : ''} rounded-lg shadow-lg mx-auto relative`}
+            className="bg-white rounded-lg shadow-lg mx-auto relative"
             style={getPreviewConfig().container}
           >
             {/* Botón de refresh */}
             <div className="absolute top-2 right-2 z-10 flex items-center space-x-2">
-              {previewMode === 'scaled' && (
-                <div className="bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs font-medium">
-                  40% Escala
+              {isRefreshing && (
+                <div className="bg-green-600 bg-opacity-90 text-white px-3 py-1 rounded text-xs font-medium flex items-center">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                  Actualizando...
                 </div>
               )}
               <button
@@ -1527,7 +1547,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
                 ref={iframeRef}
                 src={`/l/${landingSlug}`}
                 style={getPreviewConfig().iframe}
-                className="border-none rounded-lg"
+                className="border-none rounded-lg w-full h-full"
                 title="Vista previa de la landing page"
                 loading="lazy"
               />
@@ -1544,16 +1564,16 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
           
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-600">
-              Vista previa con iframe - Rendering real de la landing page
+              Vista previa con dimensiones reales - Cada vista simula el dispositivo real
             </p>
             {previewMode === 'scaled' && (
               <p className="text-xs text-gray-500 mt-1">
-                💡 Tip: Usa las vistas Tablet o Mobile para interactuar normalmente
+                💡 Tip: El scroll es interno del iframe, experiencia más limpia
               </p>
             )}
             {landingSlug && (
               <p className="text-xs text-gray-400 mt-1">
-                🔄 Los cambios se guardan automáticamente (sin alertas)
+                🔄 Los cambios se actualizan automáticamente en 0.5 segundos
               </p>
             )}
           </div>
