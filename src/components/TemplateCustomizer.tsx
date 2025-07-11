@@ -173,6 +173,8 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
   const [previewMode, setPreviewMode] = useState<'scaled' | 'tablet' | 'mobile'>('scaled');
   
   const updateTemplate = (path: string, value: any) => {
+    console.log('🔧 updateTemplate llamado:', { path, value });
+    
     const keys = path.split('.');
     const updated = JSON.parse(JSON.stringify(template));
     
@@ -183,7 +185,26 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
     }
     current[keys[keys.length - 1]] = value;
     
+    console.log('🎯 Template antes:', template);
     setTemplate(updated);
+    console.log('✅ Template después:', updated);
+    
+    // Forzar auto-save inmediato para cambios críticos
+    if (landingSlug && path.includes('animations')) {
+      console.log('🚀 Forzando auto-save inmediato para animaciones');
+      setTimeout(() => {
+        if (onSave) {
+          onSave(updated, false);
+          setTimeout(() => {
+            if (iframeRef.current) {
+              const timestamp = new Date().getTime();
+              iframeRef.current.src = `/l/${landingSlug}?t=${timestamp}`;
+              console.log('🔄 Iframe refrescado con timestamp:', timestamp);
+            }
+          }, 500);
+        }
+      }, 100);
+    }
   };
 
   const updateColorPalette = (preset: { primary: string; secondary: string; accent: string }) => {
@@ -243,14 +264,22 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
   };
 
   const refreshIframe = async (shouldSave: boolean = false, showSuccessMessage: boolean = false) => {
-    if (!iframeRef.current || !landingSlug) return;
+    console.log('🔄 refreshIframe llamado:', { shouldSave, showSuccessMessage, landingSlug, hasIframe: !!iframeRef.current });
+    
+    if (!iframeRef.current || !landingSlug) {
+      console.log('❌ No se puede refrescar: falta iframe o landingSlug');
+      return;
+    }
     
     setIsRefreshing(true);
+    console.log('⏳ Iniciando proceso de refresh...');
     
     try {
       // Solo guardamos si se solicita explícitamente
       if (shouldSave && onSave) {
+        console.log('💾 Guardando cambios en la base de datos...');
         await onSave(template, showSuccessMessage);
+        console.log('✅ Cambios guardados exitosamente');
         // Esperamos un poco para que se guarden los cambios
         await new Promise(resolve => setTimeout(resolve, 300));
       }
@@ -258,12 +287,24 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
       // Refrescamos el iframe con timestamp para evitar caché
       const iframe = iframeRef.current;
       const timestamp = new Date().getTime();
-      iframe.src = `/l/${landingSlug}?t=${timestamp}`;
+      const newSrc = `/l/${landingSlug}?t=${timestamp}`;
+      
+      console.log('🔄 Refrescando iframe:', { 
+        oldSrc: iframe.src, 
+        newSrc,
+        timestamp 
+      });
+      
+      iframe.src = newSrc;
+      console.log('✅ Iframe refrescado correctamente');
       
     } catch (error) {
-      console.error('Error al refrescar preview:', error);
+      console.error('❌ Error al refrescar preview:', error);
     } finally {
-      setIsRefreshing(false);
+      setTimeout(() => {
+        setIsRefreshing(false);
+        console.log('✅ Proceso de refresh completado');
+      }, 1000);
     }
   };
 
@@ -297,6 +338,14 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
 
   // Auto-refresh cuando cambian colores o fuentes principales (solo después de inicialización)
   React.useEffect(() => {
+    console.log('🎨 useEffect colores/fuentes ejecutado', {
+      landingSlug,
+      isInitialized,
+      initialValues,
+      currentColors: template.colors,
+      currentFonts: template.fonts
+    });
+
     if (landingSlug && isInitialized && initialValues) {
       // Verificar si realmente hubo cambios
       const hasChanges = 
@@ -305,12 +354,19 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
         initialValues.heading !== template.fonts?.heading ||
         initialValues.body !== template.fonts?.body;
       
+      console.log('🔍 Cambios detectados en colores/fuentes:', hasChanges);
+      
       if (hasChanges) {
+        console.log('⏰ Programando refresh por cambios en colores/fuentes');
         const timer = setTimeout(() => {
+          console.log('🚀 Ejecutando refresh por colores/fuentes');
           refreshIframe(true, false); // Guardar automáticamente SIN mostrar mensaje
-        }, 500); // Delay reducido a 500ms para respuesta más rápida
+        }, 500);
         
-        return () => clearTimeout(timer);
+        return () => {
+          console.log('🧹 Cleanup timer colores/fuentes');
+          clearTimeout(timer);
+        };
       }
     }
   }, [template.colors?.primary, template.colors?.secondary, template.fonts?.heading, template.fonts?.body, isInitialized, initialValues]);
@@ -325,6 +381,36 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
       return () => clearTimeout(timer);
     }
   }, [template.hero?.title, template.hero?.subtitle, template.hero?.description, template.features?.title, isInitialized]);
+
+  // Auto-refresh para cambios en animaciones
+  React.useEffect(() => {
+    console.log('🎬 useEffect animaciones ejecutado', {
+      landingSlug,
+      isInitialized,
+      animations: template.animations
+    });
+
+    if (landingSlug && isInitialized) {
+      console.log('⏰ Programando refresh por cambios en animaciones');
+      const timer = setTimeout(() => {
+        console.log('🚀 Ejecutando refresh por animaciones');
+        refreshIframe(true, false); // Guardar cambios de animaciones
+      }, 500);
+      
+      return () => {
+        console.log('🧹 Cleanup timer animaciones');
+        clearTimeout(timer);
+      };
+    }
+  }, [
+    template.animations?.hero?.type, 
+    template.animations?.hero?.duration,
+    template.animations?.features?.type, 
+    template.animations?.typing_effect?.enabled,
+    template.animations?.counter?.enabled,
+    template.animations?.parallax?.enabled,
+    isInitialized
+  ]);
 
   const colorPresets = [
     { name: 'Tech Blue', primary: '#3b82f6', secondary: '#1e40af', accent: '#fbbf24' },
@@ -514,6 +600,42 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
 
   const renderAnimationsTab = () => (
     <div className="space-y-6">
+      {/* Panel de estado actual */}
+      <div className="bg-gray-50 border rounded-lg p-4">
+        <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+          <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+          Estado Actual de Animaciones
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="font-medium text-gray-700">Hero:</span>
+            <span className="ml-2 text-gray-600">
+              {safeGetTemplateValue('animations.hero.type', 'No definido')} 
+              ({safeGetTemplateValue('animations.hero.duration', 0)}s)
+            </span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">Features:</span>
+            <span className="ml-2 text-gray-600">
+              {safeGetTemplateValue('animations.features.type', 'No definido')}
+              ({safeGetTemplateValue('animations.features.duration', 0)}s)
+            </span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">Typing Effect:</span>
+            <span className={`ml-2 ${safeGetTemplateValue('animations.typing_effect.enabled', false) ? 'text-green-600' : 'text-gray-400'}`}>
+              {safeGetTemplateValue('animations.typing_effect.enabled', false) ? 'Activo' : 'Inactivo'}
+            </span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">Contadores:</span>
+            <span className={`ml-2 ${safeGetTemplateValue('animations.counter.enabled', false) ? 'text-green-600' : 'text-gray-400'}`}>
+              {safeGetTemplateValue('animations.counter.enabled', false) ? 'Activo' : 'Inactivo'}
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-center space-x-2 mb-2">
           <Zap className="h-5 w-5 text-blue-600" />
@@ -521,7 +643,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
         </div>
         <p className="text-sm text-blue-700">
           Las animaciones se aplican cuando el usuario hace scroll hasta cada sección. 
-          Actualiza la página para ver los cambios.
+          Los cambios se reflejan automáticamente en la vista previa.
         </p>
       </div>
 
@@ -532,6 +654,11 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
             <button
               key={index}
               onClick={() => {
+                console.log('Clic en animación:', anim.name, anim.type);
+                // Asegurar que la estructura de animaciones existe
+                if (!template.animations) {
+                  updateTemplate('animations', {});
+                }
                 // Actualizar múltiples configuraciones de animación
                 updateTemplate('animations.hero.type', anim.type);
                 updateTemplate('animations.hero.duration', anim.duration);
@@ -545,21 +672,32 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
                 
                 // Mostrar feedback visual
                 console.log('Animación aplicada:', anim.name, anim.type);
+                console.log('Template después del cambio:', template.animations);
+                
+                // Feedback visual temporal
+                const button = document.activeElement as HTMLButtonElement;
+                if (button) {
+                  const originalText = button.innerHTML;
+                  button.innerHTML = `<div class="flex items-center justify-center"><div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>Aplicando...</div>`;
+                  setTimeout(() => {
+                    button.innerHTML = originalText;
+                  }, 800);
+                }
               }}
-              className={`p-4 border rounded-lg hover:shadow-md transition-shadow text-left ${
-                template.animations?.hero?.type === anim.type 
-                  ? 'border-blue-500 bg-blue-50' 
-                  : 'border-gray-200'
+              className={`p-4 border rounded-lg hover:shadow-md transition-all duration-200 text-left ${
+                safeGetTemplateValue('animations.hero.type', '') === anim.type 
+                  ? 'border-blue-500 bg-blue-50 shadow-md' 
+                  : 'border-gray-200 hover:border-gray-300'
               }`}
             >
               <div className="flex items-center space-x-2 mb-2">
                 <Zap className={`h-5 w-5 ${
-                  template.animations?.hero?.type === anim.type 
+                  safeGetTemplateValue('animations.hero.type', '') === anim.type 
                     ? 'text-blue-600' 
                     : 'text-gray-400'
                 }`} />
                 <span className="font-medium">{anim.name}</span>
-                {template.animations?.hero?.type === anim.type && (
+                {safeGetTemplateValue('animations.hero.type', '') === anim.type && (
                   <div className="ml-auto">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       Activo
@@ -575,150 +713,41 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
         </div>
       </div>
 
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Efectos Especiales</h3>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0">
-                <Type className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-900">
-                  Efecto de escritura en el título
-                </label>
-                <p className="text-sm text-gray-500">
-                  Texto que se escribe automáticamente
-                </p>
-              </div>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={template.animations?.typing_effect?.enabled || false}
-                onChange={(e) => {
-                  updateTemplate('animations.typing_effect.enabled', e.target.checked);
-                  if (e.target.checked) {
-                    updateTemplate('animations.typing_effect.texts', [
-                      'Innovación Digital',
-                      'Soluciones Creativas',
-                      'Tecnología Avanzada'
-                    ]);
-                    updateTemplate('animations.typing_effect.speed', 100);
-                  }
-                }}
-                className="sr-only"
-              />
-              <div className="relative">
-                <div className={`block w-14 h-8 rounded-full ${
-                  template.animations?.typing_effect?.enabled 
-                    ? 'bg-blue-600' 
-                    : 'bg-gray-200'
-                }`}></div>
-                <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition ${
-                  template.animations?.typing_effect?.enabled 
-                    ? 'transform translate-x-6' 
-                    : ''
-                }`}></div>
-              </div>
-            </label>
-          </div>
-
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-900">
-                  Contadores animados
-                </label>
-                <p className="text-sm text-gray-500">
-                  Números que cuentan hasta el valor final
-                </p>
-              </div>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={template.animations?.counter?.enabled || false}
-                onChange={(e) => {
-                  updateTemplate('animations.counter.enabled', e.target.checked);
-                  if (e.target.checked) {
-                    updateTemplate('animations.counter.duration', 2.0);
-                  }
-                }}
-                className="sr-only"
-              />
-              <div className="relative">
-                <div className={`block w-14 h-8 rounded-full ${
-                  template.animations?.counter?.enabled 
-                    ? 'bg-green-600' 
-                    : 'bg-gray-200'
-                }`}></div>
-                <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition ${
-                  template.animations?.counter?.enabled 
-                    ? 'transform translate-x-6' 
-                    : ''
-                }`}></div>
-              </div>
-            </label>
-          </div>
-
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0">
-                <Image className="h-5 w-5 text-indigo-600" />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-900">
-                  Efecto parallax en imágenes
-                </label>
-                <p className="text-sm text-gray-500">
-                  Movimiento suave de fondo al hacer scroll
-                </p>
-              </div>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={template.animations?.parallax?.enabled || false}
-                onChange={(e) => {
-                  updateTemplate('animations.parallax.enabled', e.target.checked);
-                  if (e.target.checked) {
-                    updateTemplate('animations.parallax.speed', 0.5);
-                  }
-                }}
-                className="sr-only"
-              />
-              <div className="relative">
-                <div className={`block w-14 h-8 rounded-full ${
-                  template.animations?.parallax?.enabled 
-                    ? 'bg-indigo-600' 
-                    : 'bg-gray-200'
-                }`}></div>
-                <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition ${
-                  template.animations?.parallax?.enabled 
-                    ? 'transform translate-x-6' 
-                    : ''
-                }`}></div>
-              </div>
-            </label>
-          </div>
-        </div>
-      </div>
-
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <div className="flex items-center space-x-2 mb-2">
           <svg className="h-5 w-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
-          <h4 className="font-medium text-yellow-900">Consejo</h4>
+          <h4 className="font-medium text-yellow-800">Consejos de Animaciones</h4>
         </div>
-        <p className="text-sm text-yellow-700">
-          Para ver las animaciones funcionando, actualiza la página y haz scroll lentamente. 
-          Las animaciones se activan cuando cada sección entra en el viewport.
-        </p>
+        <ul className="text-sm text-yellow-700 space-y-1">
+          <li>• Las animaciones se activan automáticamente en 0.5 segundos</li>
+          <li>• Abre la consola del navegador (F12) para ver el debugging de los cambios</li>
+          <li>• Las animaciones se activan cuando el usuario hace scroll hasta cada sección</li>
+        </ul>
+        <div className="mt-3 flex space-x-2">
+          <button
+            onClick={runComprehensiveTest}
+            className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-xs font-medium"
+            title="Ejecutar test comprensivo del sistema de animaciones"
+          >
+            🧪 Test Comprensivo
+          </button>
+          <button
+            onClick={() => {
+              console.log('🔍 ESTADO ACTUAL DEL SISTEMA:');
+              console.log('Template completo:', JSON.stringify(template, null, 2));
+              console.log('Landing slug:', landingSlug);
+              console.log('Is initialized:', isInitialized);
+              console.log('onSave function:', typeof onSave);
+              console.log('iframe ref:', iframeRef.current);
+            }}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs font-medium"
+            title="Mostrar estado actual del sistema"
+          >
+            🔍 Debug Estado
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1166,6 +1195,125 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
     { id: 'content', name: 'Contenido', icon: Image },
   ];
 
+  // Validación de datos para evitar errores
+  const safeGetTemplateValue = (path: string, defaultValue: any = null) => {
+    try {
+      const keys = path.split('.');
+      let current = template;
+      for (const key of keys) {
+        if (current && typeof current === 'object' && key in current) {
+          current = current[key];
+        } else {
+          return defaultValue;
+        }
+      }
+      return current;
+    } catch (error) {
+      console.error('Error al obtener valor del template:', error);
+      return defaultValue;
+    }
+  };
+
+  // Inicialización con valores por defecto si no existen
+  React.useEffect(() => {
+    if (!template.animations) {
+      console.log('⚠️ Template sin animaciones, inicializando...');
+      updateTemplate('animations', {
+        hero: { type: 'fadeInUp', duration: 1.0, delay: 0.2 },
+        features: { type: 'staggeredFadeIn', duration: 0.8, delay: 0.3 },
+        typing_effect: { enabled: false },
+        counter: { enabled: false },
+        parallax: { enabled: false }
+      });
+    }
+    
+    if (!template.colors) {
+      console.log('⚠️ Template sin colores, inicializando...');
+      updateTemplate('colors', {
+        primary: '#3b82f6',
+        secondary: '#1e40af',
+        accent: '#f59e0b',
+        text: '#1f2937',
+        background: '#ffffff'
+      });
+    }
+    
+    if (!template.fonts) {
+      console.log('⚠️ Template sin fuentes, inicializando...');
+      updateTemplate('fonts', {
+        heading: 'Inter',
+        body: 'Inter'
+      });
+    }
+  }, [template]);
+
+  // Debug del estado del template
+  React.useEffect(() => {
+    console.log('📊 Template actualizado:', {
+      hasAnimations: !!template.animations,
+      hasColors: !!template.colors,
+      hasFonts: !!template.fonts,
+      landingSlug,
+      isInitialized
+    });
+  }, [template, landingSlug, isInitialized]);
+
+  // Función de test completa para debugging
+  const runComprehensiveTest = () => {
+    console.log('🧪 ===== INICIANDO TEST COMPRENSIVO =====');
+    console.log('1. Estado inicial del template:', JSON.stringify(template, null, 2));
+    
+    // Test 1: Verificar estructura de animaciones
+    console.log('2. Verificando estructura de animaciones...');
+    const hasAnimations = !!template.animations;
+    console.log('   - Tiene animaciones:', hasAnimations);
+    
+    if (!hasAnimations) {
+      console.log('   - Inicializando estructura de animaciones...');
+      updateTemplate('animations', {
+        hero: { type: 'fadeInUp', duration: 1.0, delay: 0.2 },
+        features: { type: 'staggeredFadeIn', duration: 0.8, delay: 0.3 },
+        typing_effect: { enabled: false },
+        counter: { enabled: false },
+        parallax: { enabled: false }
+      });
+    }
+    
+    // Test 2: Cambiar animaciones paso a paso
+    console.log('3. Aplicando cambios de animación...');
+    setTimeout(() => {
+      console.log('   - Cambiando hero a bounceIn...');
+      updateTemplate('animations.hero.type', 'bounceIn');
+      updateTemplate('animations.hero.duration', 1.5);
+      
+      setTimeout(() => {
+        console.log('   - Activando typing effect...');
+        updateTemplate('animations.typing_effect.enabled', true);
+        updateTemplate('animations.typing_effect.texts', ['Test 1', 'Test 2', 'Test 3']);
+        
+        setTimeout(() => {
+          console.log('   - Activando contadores...');
+          updateTemplate('animations.counter.enabled', true);
+          updateTemplate('animations.counter.duration', 2.0);
+          
+          setTimeout(() => {
+            console.log('4. Estado final del template:', JSON.stringify(template, null, 2));
+            console.log('5. Forzando guardado y refresh...');
+            
+                         if (onSave) {
+               onSave(template, false);
+               console.log('6. Guardado llamado, refrescando iframe...');
+               setTimeout(() => {
+                 refreshIframe(false, false);
+                 console.log('🎉 ===== TEST COMPRENSIVO COMPLETADO =====');
+               }, 500);
+             }
+          }, 500);
+        }, 500);
+      }, 500);
+    }, 500);
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -1532,6 +1680,26 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
                 </div>
               )}
               <button
+                onClick={() => {
+                  console.log('🧪 Test manual de animaciones');
+                  console.log('📊 Estado actual del template:', template);
+                  console.log('🎬 Animaciones actuales:', template.animations);
+                  
+                  // Cambio de prueba
+                  updateTemplate('animations.hero.type', 'bounceIn');
+                  updateTemplate('animations.hero.duration', 1.0);
+                  
+                  // Forzar refresh inmediato
+                  setTimeout(() => {
+                    refreshIframe(true, false);
+                  }, 200);
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs font-medium"
+                title="Test de animaciones"
+              >
+                🧪 Test
+              </button>
+              <button
                 onClick={handleRefreshClick}
                 disabled={isRefreshing || !landingSlug}
                 className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white p-2 rounded shadow-lg transition-colors"
@@ -1573,7 +1741,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
             )}
             {landingSlug && (
               <p className="text-xs text-gray-400 mt-1">
-                🔄 Los cambios se actualizan automáticamente en 0.5 segundos
+                🔄 Cambios en colores, fuentes, contenido y animaciones se actualizan automáticamente
               </p>
             )}
           </div>
