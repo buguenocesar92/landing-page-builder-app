@@ -1,33 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Eye, Download, Palette, Type, Image, Zap, TrendingUp } from 'lucide-react';
-import LandingRenderer from './LandingRenderer';
+import React, { useState, useRef } from 'react';
+import { Eye, Download, Palette, Type, Image, Zap, TrendingUp, RefreshCw } from 'lucide-react';
 
 interface TemplateCustomizerProps {
   initialTemplate: any;
-  onSave?: (customizedTemplate: any) => void;
+  onSave?: (customizedTemplate: any, showSuccessMessage?: boolean) => void;
+  landingSlug?: string; // Slug de la landing page para el iframe
 }
 
-const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate, onSave }) => {
-  // Estilos CSS para ocultar scrollbars en vista escalada
-  React.useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-    `;
-    document.head.appendChild(style);
-    
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
+const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate, onSave, landingSlug }) => {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [initialValues, setInitialValues] = useState<any>(null);
   
   // Asegurar que el template inicial tenga una estructura completa
   const [template, setTemplate] = useState(() => {
@@ -222,34 +208,104 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
       case 'scaled':
         return {
           container: { width: '100%', height: '800px', overflow: 'hidden', position: 'relative' as const },
-          content: { 
-            transform: 'scale(0.2)', 
-            transformOrigin: 'top left', 
-            width: '500%', 
-            height: '500%',
-            overflow: 'hidden'
-          },
-          title: '🖥️ Vista Escalada',
-          description: 'Vista completa sin scroll - Todo el contenido visible a escala 20%'
+          iframe: { width: '1920px', height: '1080px', transform: 'scale(0.4)', transformOrigin: 'top left' },
+          title: '🖥️ Vista Desktop',
+          description: 'Vista completa de escritorio (1920x1080) escalada al 40%'
         };
       case 'tablet':
         return {
-          container: { width: '768px', height: '650px', overflow: 'auto', border: '2px solid #e5e7eb' },
-          content: { width: '100%', height: 'auto' },
+          container: { width: '768px', height: '650px', overflow: 'hidden', border: '2px solid #e5e7eb' },
+          iframe: { width: '768px', height: '1024px' },
           title: '📱 Vista Tablet',
-          description: 'Vista de tablet (768px de ancho) - Scroll para navegar'
+          description: 'Vista de tablet (768x1024) - Scroll natural'
         };
       case 'mobile':
         return {
-          container: { width: '375px', height: '650px', overflow: 'auto', border: '2px solid #e5e7eb' },
-          content: { width: '100%', height: 'auto' },
+          container: { width: '375px', height: '650px', overflow: 'hidden', border: '2px solid #e5e7eb' },
+          iframe: { width: '375px', height: '812px' },
           title: '📱 Vista Mobile',
-          description: 'Vista móvil (375px de ancho) - Scroll para navegar'
+          description: 'Vista móvil (375x812) - Scroll natural'
         };
       default:
         return getPreviewConfig();
     }
   };
+
+  const refreshIframe = async (shouldSave: boolean = false, showSuccessMessage: boolean = false) => {
+    if (!iframeRef.current || !landingSlug) return;
+    
+    setIsRefreshing(true);
+    
+    try {
+      // Solo guardamos si se solicita explícitamente
+      if (shouldSave && onSave) {
+        await onSave(template, showSuccessMessage);
+        // Esperamos un poco para que se guarden los cambios
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      // Refrescamos el iframe
+      const iframe = iframeRef.current;
+      const currentSrc = iframe.src;
+      iframe.src = '';
+      setTimeout(() => {
+        iframe.src = currentSrc;
+      }, 100);
+      
+    } catch (error) {
+      console.error('Error al refrescar preview:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleRefreshClick = () => {
+    refreshIframe(false, false); // Solo refrescar, no guardar
+  };
+
+  const handleSaveClick = async () => {
+    if (onSave) {
+      await onSave(template, true); // Guardar con mensaje de éxito
+      // Después de guardar, refrescar el iframe
+      setTimeout(() => refreshIframe(false, false), 300);
+    }
+  };
+
+  // Efecto para marcar como inicializado después del primer render
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      // Capturar valores iniciales
+      setInitialValues({
+        primary: template.colors?.primary,
+        secondary: template.colors?.secondary,
+        heading: template.fonts?.heading,
+        body: template.fonts?.body
+      });
+      setIsInitialized(true);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Auto-refresh cuando cambian colores o fuentes principales (solo después de inicialización)
+  React.useEffect(() => {
+    if (landingSlug && isInitialized && initialValues) {
+      // Verificar si realmente hubo cambios
+      const hasChanges = 
+        initialValues.primary !== template.colors?.primary ||
+        initialValues.secondary !== template.colors?.secondary ||
+        initialValues.heading !== template.fonts?.heading ||
+        initialValues.body !== template.fonts?.body;
+      
+      if (hasChanges) {
+        const timer = setTimeout(() => {
+          refreshIframe(true, false); // Guardar automáticamente SIN mostrar mensaje
+        }, 1000); // Delay de 1 segundo después de cambios
+        
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [template.colors?.primary, template.colors?.secondary, template.fonts?.heading, template.fonts?.body, isInitialized, initialValues]);
 
   const colorPresets = [
     { name: 'Tech Blue', primary: '#3b82f6', secondary: '#1e40af', accent: '#fbbf24' },
@@ -1351,7 +1407,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
                 Vista Previa
               </button>
               <button
-                onClick={() => onSave?.(template)}
+                onClick={handleSaveClick}
                 className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
               >
                 <Download className="h-4 w-4 mr-2" />
@@ -1408,7 +1464,7 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                🖥️ Escalada
+                🖥️ Desktop
               </button>
               <button
                 onClick={() => setPreviewMode('tablet')}
@@ -1448,37 +1504,56 @@ const TemplateCustomizer: React.FC<TemplateCustomizerProps> = ({ initialTemplate
             className={`bg-white ${previewMode === 'scaled' ? 'border-2 border-gray-300' : ''} rounded-lg shadow-lg mx-auto relative`}
             style={getPreviewConfig().container}
           >
-            {/* Indicador de escala para vista escalada */}
-            {previewMode === 'scaled' && (
-              <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs font-medium z-10">
-                20% Escala
+            {/* Botón de refresh */}
+            <div className="absolute top-2 right-2 z-10 flex items-center space-x-2">
+              {previewMode === 'scaled' && (
+                <div className="bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs font-medium">
+                  40% Escala
+                </div>
+              )}
+              <button
+                onClick={handleRefreshClick}
+                disabled={isRefreshing || !landingSlug}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white p-2 rounded shadow-lg transition-colors"
+                title="Refrescar vista previa"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+            
+            {/* Iframe para preview */}
+            {landingSlug ? (
+              <iframe
+                ref={iframeRef}
+                src={`/l/${landingSlug}`}
+                style={getPreviewConfig().iframe}
+                className="border-none rounded-lg"
+                title="Vista previa de la landing page"
+                loading="lazy"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-500">
+                <div className="text-center">
+                  <Eye className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No hay landing page para previsualizar</p>
+                  <p className="text-sm">Guarda primero tu template</p>
+                </div>
               </div>
             )}
-            
-            <div 
-              style={{
-                ...getPreviewConfig().content,
-                scrollbarWidth: previewMode === 'scaled' ? 'none' : 'thin',
-                msOverflowStyle: previewMode === 'scaled' ? 'none' : 'auto'
-              }}
-              className={previewMode === 'scaled' ? 'no-scrollbar' : ''}
-            >
-              <div 
-                key={`${template.colors?.primary}-${template.colors?.secondary}-${template.colors?.accent}-${template.fonts?.heading}-${template.fonts?.body}-${previewMode}`}
-                style={{ width: '100%' }}
-              >
-                <LandingRenderer content={template} />
-              </div>
-            </div>
           </div>
           
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-600">
-              Los cambios se reflejan automáticamente en la vista seleccionada
+              Vista previa con iframe - Rendering real de la landing page
             </p>
             {previewMode === 'scaled' && (
               <p className="text-xs text-gray-500 mt-1">
-                💡 Tip: Usa la vista Tablet o Mobile para navegar con scroll
+                💡 Tip: Usa las vistas Tablet o Mobile para interactuar normalmente
+              </p>
+            )}
+            {landingSlug && (
+              <p className="text-xs text-gray-400 mt-1">
+                🔄 Los cambios se guardan automáticamente (sin alertas)
               </p>
             )}
           </div>

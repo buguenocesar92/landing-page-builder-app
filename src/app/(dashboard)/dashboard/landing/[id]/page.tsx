@@ -118,7 +118,7 @@ export default function LandingDetailPage() {
     }
   };
 
-  const handleSaveTemplate = async (customizedTemplate: any) => {
+  const handleSaveTemplate = async (customizedTemplate: any, showSuccessMessage: boolean = true) => {
     if (!landing) return;
     
     try {
@@ -132,8 +132,10 @@ export default function LandingDetailPage() {
       
       if (response.success && response.data) {
         setLanding(response.data);
-        alert('Template guardado exitosamente');
-        setIsEditMode(false);
+        if (showSuccessMessage) {
+          alert('Template guardado exitosamente');
+          setIsEditMode(false);
+        }
       } else {
         alert('Error al guardar el template');
       }
@@ -232,6 +234,7 @@ export default function LandingDetailPage() {
           <TemplateCustomizer 
             initialTemplate={landing.content}
             onSave={handleSaveTemplate}
+            landingSlug={landing.slug}
           />
         ) : (
           <>
