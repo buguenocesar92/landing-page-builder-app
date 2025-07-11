@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth, useRequireAuth } from '@/lib/auth-context';
 import apiService from '@/lib/api';
-import { BarChart3, FileText, Users, Eye, Plus, LogOut } from 'lucide-react';
+import { BarChart3, FileText, Users, Eye, Plus, LogOut, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import type { DashboardStats, Landing } from '@/types';
 
@@ -145,13 +145,22 @@ export default function DashboardPage() {
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-medium text-gray-900">Mis Landing Pages</h2>
-              <Link
-                href="/dashboard/create"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Nueva Landing Page
-              </Link>
+              <div className="flex space-x-3">
+                <Link
+                  href="/dashboard/analytics"
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
+                >
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  Analytics de Productos
+                </Link>
+                <Link
+                  href="/dashboard/create"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Nueva Landing Page
+                </Link>
+              </div>
             </div>
           </div>
 

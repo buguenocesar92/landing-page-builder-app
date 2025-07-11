@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { trackProductClick, getProductTrackingData } from '@/lib/analytics';
 
 interface Product {
   id: number;
@@ -106,7 +107,16 @@ const ProductsRenderer: React.FC<ProductsRendererProps> = ({ products, colors })
                     backgroundColor: colors.accent,
                     color: 'white'
                   }}
-                  onClick={() => {
+                  onClick={async () => {
+                    // 🔥 TRACKING: Registrar clic en producto
+                    try {
+                      const trackingData = getProductTrackingData(product, product.cta_button || 'Lo Quiero');
+                      await trackProductClick(trackingData);
+                      console.log('✅ Producto clickeado registrado:', trackingData.productName);
+                    } catch (error) {
+                      console.error('❌ Error tracking producto:', error);
+                    }
+                    
                     // Scroll al formulario cuando hagan clic en "Lo Quiero"
                     const formSection = document.querySelector('form');
                     if (formSection) {

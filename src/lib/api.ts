@@ -233,7 +233,55 @@ class ApiService {
 
   // Método para generar slug
   async generateSlug(title: string): Promise<ApiResponse<{ slug: string }>> {
-    const response: AxiosResponse<ApiResponse<{ slug: string }>> = await this.api.post('/utils/generate-slug', { title });
+    const response: AxiosResponse<ApiResponse<{ slug: string }>> = await this.api.post('/utils/generate-slug', {
+      title,
+    });
+    return response.data;
+  }
+
+  // ====================================
+  // PRODUCT ANALYTICS METHODS
+  // ====================================
+  async getProductAnalytics(landingId: number, params?: {
+    date_from?: string;
+    date_to?: string;
+    limit?: number;
+  }): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (params?.date_from) queryParams.append('date_from', params.date_from);
+    if (params?.date_to) queryParams.append('date_to', params.date_to);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const url = `/product-analytics/landing/${landingId}/stats${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response: AxiosResponse<ApiResponse<any>> = await this.api.get(url);
+    return response.data;
+  }
+
+  async getGlobalProductAnalytics(params?: {
+    date_from?: string;
+    date_to?: string;
+    limit?: number;
+  }): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (params?.date_from) queryParams.append('date_from', params.date_from);
+    if (params?.date_to) queryParams.append('date_to', params.date_to);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const url = `/product-analytics/global-stats${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response: AxiosResponse<ApiResponse<any>> = await this.api.get(url);
+    return response.data;
+  }
+
+  async getProductDetails(landingId: number, productName: string, params?: {
+    date_from?: string;
+    date_to?: string;
+  }): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (params?.date_from) queryParams.append('date_from', params.date_from);
+    if (params?.date_to) queryParams.append('date_to', params.date_to);
+    
+    const url = `/product-analytics/landing/${landingId}/product/${encodeURIComponent(productName)}${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response: AxiosResponse<ApiResponse<any>> = await this.api.get(url);
     return response.data;
   }
 

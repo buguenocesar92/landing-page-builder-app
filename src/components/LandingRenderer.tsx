@@ -17,9 +17,17 @@ import {
   Award,
   CheckCircle,
   X,
-  MessageSquare
+  MessageSquare,
+  ChevronLeft,
+  ChevronRight,
+  Pause,
+  Users,
+  Target,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import Image from 'next/image';
+import { trackProductClick, getProductTrackingData } from '@/lib/analytics';
 
 interface LandingRendererProps {
   content: any;
@@ -899,7 +907,16 @@ const LandingRenderer: React.FC<LandingRendererProps> = ({ content, onSubmit }) 
                       backgroundColor: colors.accent,
                       color: 'white'
                     }}
-                    onClick={() => {
+                    onClick={async () => {
+                      // 🔥 TRACKING: Registrar clic en producto
+                      try {
+                        const trackingData = getProductTrackingData(product, product.cta_button || 'Lo Quiero');
+                        await trackProductClick(trackingData);
+                        console.log('✅ Producto clickeado registrado:', trackingData.productName);
+                      } catch (error) {
+                        console.error('❌ Error tracking producto:', error);
+                      }
+                      
                       // Scroll al formulario cuando hagan clic en "Lo Quiero"
                       const formSection = document.querySelector('form');
                       if (formSection) {
