@@ -24,7 +24,7 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       const [statsResponse, landingsResponse] = await Promise.all([
-        apiService.getDashboardStats(user?.id),
+        apiService.getDashboardStats(), // 🔒 SEGURIDAD: Sin user_id, el backend usa auth()->user()
         apiService.getLandings(),
       ]);
 

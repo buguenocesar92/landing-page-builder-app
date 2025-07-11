@@ -211,9 +211,9 @@ class ApiService {
   // ====================================
   // DASHBOARD METHODS
   // ====================================
-  async getDashboardStats(userId?: number): Promise<ApiResponse<DashboardStats>> {
-    const params = userId ? { user_id: userId } : {};
-    const response: AxiosResponse<ApiResponse<DashboardStats>> = await this.api.get('/dashboard/stats', { params });
+  async getDashboardStats(): Promise<ApiResponse<DashboardStats>> {
+    // 🔒 SEGURIDAD: No necesario pasar user_id, el backend usa auth()->user()
+    const response: AxiosResponse<ApiResponse<DashboardStats>> = await this.api.get('/dashboard/stats');
     return response.data;
   }
 
